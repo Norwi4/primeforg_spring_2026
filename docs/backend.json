@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "Team": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Team",
+      "type": "object",
+      "description": "Represents a team registered on the PrimeForage website.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Team entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the team."
+        },
+        "registrationDate": {
+          "type": "string",
+          "description": "The date and time the team registered.",
+          "format": "date-time"
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "The contact email for the team.",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "registrationDate",
+        "contactEmail"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/teams/{teamId}",
+        "definition": {
+          "entityName": "Team",
+          "schema": {
+            "$ref": "#/backend/entities/Team"
+          },
+          "description": "Stores team information. Includes fields like name, registration date, and contact email.",
+          "params": [
+            {
+              "name": "teamId",
+              "description": "Unique identifier for the team."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "admin",
+          "schema": {
+            "$ref": "#/backend/entities/admin"
+          },
+          "description": "Indicates an admin role. Existence of a document in this collection grants admin privileges.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The user ID of the admin."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore data structure is designed to support the PrimeForage website, focusing on enabling an admin to view the number of registered teams. It prioritizes authorization independence and simple, robust security rules by avoiding hierarchical authorization dependencies. The structure includes a collection for storing team data and a collection to define admin roles. This design enables simple, robust, and easily debuggable security rules.\n\nAuthorization Independence is achieved by limiting any need to access data from other documents when managing teams. Admin roles are checked via the `/roles_admin/{uid}` collection.\n\nQAPs (Rules are not Filters) are achieved by separating concerns. The `teams` collection will not contain any documents with mixed permissions requirements.\n\nStructural Segregation is maintained by placing all Team documents into the `teams` collection."
+  }
+}

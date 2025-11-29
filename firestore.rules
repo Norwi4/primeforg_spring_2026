@@ -1,0 +1,92 @@
+/**
+ * This ruleset implements a Role-Based Access Control (RBAC) model for the PrimeForage application.
+ *
+ * Core Philosophy:
+ * The security model is centered around a privileged 'admin' role. Users designated as admins are granted
+ * read-only access to application-wide data, such as the list of registered teams. All other users,
+ * including authenticated non-admins and anonymous users, are denied access. All write operations
+ * (create, update, delete) are disallowed from the client-side, implying that data is managed by a
+ * trusted server environment (e.g., Cloud Functions).
+ *
+ * Data Structure:
+ * The data is organized into two distinct top-level collections:
+ * - /teams/{teamId}: Stores information about registered teams.
+ * - /roles_admin/{userId}: A lookup collection where the existence of a document grants a user admin privileges.
+ *
+ * Key Security Decisions:
+ * - Admin-Only Reads: Only users with a corresponding document in the /roles_admin collection can read from the /teams collection.
+ * - No Client-Side Writes: To ensure data integrity and prevent unauthorized modifications, all write operations on the /teams collection are disabled for clients.
+ * - Secure Role Management: The /roles_admin collection is completely locked down from client access to prevent users from escalating their own privileges. Roles must be managed through the Firebase Console or a secure backend process.
+ *
+ * Denormalization for Authorization:
+ * The /roles_admin collection is a prime example of denormalization for authorization. Instead of storing a role field on a user object, this separate collection allows for a simple and highly performant `exists()` check within the security rules to determine if a user is an admin, without needing to grant read access to any user documents.
+ *
+ * Structural Segregation:
+ * The ruleset maintains a clean separation of concerns. The `teams` collection holds public-facing data (for admins), while the `roles_admin` collection is purely for internal authorization logic, and the rules reflect this by locking it down completely.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ----------------------------------------------------------------------
+    // Helper Functions
+    // ----------------------------------------------------------------------
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the requesting user has an admin role.
+     * This is determined by the existence of a document in the 'roles_admin'
+     * collection with the user's UID as the document ID.
+     */
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+
+
+    // ----------------------------------------------------------------------
+    // Collection Rules
+    // ----------------------------------------------------------------------
+
+    /**
+     * @description
+     *   Manages access to team registration data. Only authenticated admins are
+     *   allowed to read this information. All client-side write operations are
+     *   denied to ensure data is only created or modified by a trusted backend.
+     * @path /teams/{teamId}
+     * @allow An authenticated admin user `(get)`s a specific team document.
+     * @deny A non-admin signed-in user tries to `(list)` the teams collection.
+     * @principle Implements Role-Based Access Control (RBAC) for read operations and prevents all client-side writes.
+     */
+    match /teams/{teamId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description
+     *   Secures the collection that defines admin roles. This collection is used
+     *   as a lookup table by other security rules (`isAdmin()` function) and
+     *   must not be readable or writable by any client to prevent privilege escalation.
+     * @path /roles_admin/{userId}
+     * @allow No direct client access is permitted.
+     * @deny Any user (including an admin) trying to `(get)`, `(create)`, or `(delete)` a role document.
+     * @principle Prevents client-side tampering with authorization roles.
+     */
+    match /roles_admin/{userId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}
