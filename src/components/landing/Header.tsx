@@ -25,16 +25,16 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
-        <Link href="#" className="flex items-center gap-2" prefetch={false} onClick={() => setIsOpen(false)}>
+        <Link href="#" className="flex items-center gap-3" prefetch={false} onClick={() => setIsOpen(false)}>
           <Dota2Icon className="h-8 w-8" />
-          <span className="font-headline text-xl font-bold text-primary">Dota 2 Championship</span>
+          <span className="font-headline text-xl font-bold tracking-wider text-primary-foreground">Dota 2 Championship</span>
         </Link>
         <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-foreground/80 transition-colors hover:text-foreground"
+              className="text-muted-foreground transition-colors hover:text-foreground"
               prefetch={false}
             >
               {link.label}
@@ -52,7 +52,7 @@ export default function Header() {
               <div className="grid gap-4 p-4">
                 <Link href="#" className="flex items-center gap-2" prefetch={false} onClick={() => setIsOpen(false)}>
                   <Dota2Icon className="h-6 w-6" />
-                  <span className="font-headline text-lg font-bold text-primary">Dota 2 Championship</span>
+                  <span className="font-headline text-lg font-bold text-primary-foreground">Dota 2 Championship</span>
                 </Link>
                 <nav className="grid gap-2 text-lg font-medium">
                   {navLinks.map((link) => (

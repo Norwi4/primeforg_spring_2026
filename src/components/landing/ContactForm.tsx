@@ -1,46 +1,127 @@
-{
-  "placeholderImages": [
-    {
-      "id": "hero-background",
-      "description": "Dota 2 tournament background",
-      "imageUrl": "https://images.unsplash.com/photo-1593011389275-add47849314c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxnYW1pbmclMjBlc3BvcnRzfGVufDB8fHx8MTc2NDYwOTg1NHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "esports gaming"
+"use client";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { submitContactForm } from "@/app/actions";
+import { contactSchema, type ContactFormState } from "@/lib/schema";
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
+
+export default function ContactForm() {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<z.infer<typeof contactSchema>>({
+    resolver: zodResolver(contactSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      message: "",
     },
-    {
-      "id": "sponsor-logo-1",
-      "description": "Sponsor logo",
-      "imageUrl": "https://picsum.photos/seed/sponsor1/200/100",
-      "imageHint": "logo brand"
-    },
-    {
-      "id": "sponsor-logo-2",
-      "description": "Sponsor logo",
-      "imageUrl": "https://picsum.photos/seed/sponsor2/200/100",
-      "imageHint": "logo brand"
-    },
-    {
-      "id": "sponsor-logo-3",
-      "description": "Sponsor logo",
-      "imageUrl": "https://picsum.photos/seed/sponsor3/200/100",
-      "imageHint": "logo brand"
-    },
-    {
-      "id": "sponsor-logo-4",
-      "description": "Sponsor logo",
-      "imageUrl": "https://picsum.photos/seed/sponsor4/200/100",
-      "imageHint": "logo brand"
-    },
-    {
-      "id": "sponsor-logo-5",
-      "description": "Sponsor logo",
-      "imageUrl": "https://picsum.photos/seed/sponsor5/200/100",
-      "imageHint": "logo brand"
-    },
-    {
-      "id": "sponsor-logo-6",
-      "description": "Sponsor logo",
-      "imageUrl": "https://picsum.photos/seed/sponsor6/200/100",
-      "imageHint": "logo brand"
+  });
+
+  async function onSubmit(values: z.infer<typeof contactSchema>) {
+    setIsSubmitting(true);
+    const result: ContactFormState = await submitContactForm(values);
+    setIsSubmitting(false);
+
+    if (result.success) {
+      toast({
+        title: "Message Sent!",
+        description: result.message,
+      });
+      form.reset();
+    } else {
+      // Handle server-side validation errors
+      if (result.errors) {
+        Object.entries(result.errors).forEach(([field, messages]) => {
+          if (messages) {
+            form.setError(field as keyof z.infer<typeof contactSchema>, {
+              type: "server",
+              message: messages.join(", "),
+            });
+          }
+        });
+      }
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: result.message,
+      });
     }
-  ]
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Your Name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input placeholder="your.email@example.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="message"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Message</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Tell us what's on your mind"
+                  className="min-h-[120px]"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Sending...
+            </>
+          ) : (
+            "Send Message"
+          )}
+        </Button>
+      </form>
+    </Form>
+  );
 }

@@ -20,29 +20,29 @@ export default function Footer() {
   }, []);
 
   return (
-    <footer className="bg-primary/90 text-primary-foreground/80">
+    <footer className="bg-secondary/50">
       <div className="container mx-auto max-w-7xl px-4 py-8 md:px-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <Dota2Icon className="h-6 w-6 text-accent" />
+            <Dota2Icon className="h-8 w-8 text-accent" />
             <span className="font-headline text-lg font-bold">Dota 2 Championship</span>
           </div>
-          <p className="text-sm font-body text-center md:text-left">
+          <p className="text-sm text-center md:text-left text-muted-foreground">
             © {currentYear ? currentYear : new Date().getFullYear()} Dota 2 Championship. Все права защищены.
           </p>
           <div className="flex items-center gap-4">
-            <Link href="#" aria-label="Twitter" prefetch={false}>
-              <Twitter className="h-5 w-5 transition-colors hover:text-primary-foreground" />
+            <Link href="#" aria-label="Twitter" className="text-muted-foreground transition-colors hover:text-foreground" prefetch={false}>
+              <Twitter className="h-5 w-5" />
             </Link>
-            <Link href="#" aria-label="LinkedIn" prefetch={false}>
-              <Linkedin className="h-5 w-5 transition-colors hover:text-primary-foreground" />
+            <Link href="#" aria-label="LinkedIn" className="text-muted-foreground transition-colors hover:text-foreground" prefetch={false}>
+              <Linkedin className="h-5 w-5" />
             </Link>
-            <Link href="#" aria-label="Facebook" prefetch={false}>
-              <Facebook className="h-5 w-5 transition-colors hover:text-primary-foreground" />
+            <Link href="#" aria-label="Facebook" className="text-muted-foreground transition-colors hover:text-foreground" prefetch={false}>
+              <Facebook className="h-5 w-5" />
             </Link>
           </div>
         </div>
-        <div className="mt-6 border-t border-primary-foreground/20 pt-6 text-center text-xs">
+        <div className="mt-6 border-t border-border pt-6 text-center text-xs text-muted-foreground">
           <p>Сражайтесь за славу.</p>
         </div>
       </div>

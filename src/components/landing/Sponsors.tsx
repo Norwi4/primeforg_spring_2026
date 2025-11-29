@@ -17,21 +17,20 @@ export default function Sponsors() {
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <div className="space-y-2">
-            <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm font-body">Наши партнеры</div>
-            <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-5xl text-primary">
+            <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Наши партнеры</div>
+            <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-5xl text-primary-foreground">
               Спонсоры турнира
             </h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed font-body">
+            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
               Мы благодарны нашим спонсорам, которые делают этот турнир возможным.
             </p>
           </div>
         </div>
-        <div className="mt-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 items-center">
+        <div className="mt-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center">
           {sponsors.map((sponsor) => {
             const sponsorImage = PlaceHolderImages.find(p => p.id === sponsor.id);
             return (
-              <Card key={sponsor.id} className="bg-transparent border-0 shadow-none flex justify-center">
-                <CardContent className="p-0">
+              <div key={sponsor.id} className="flex justify-center grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
                   {sponsorImage && (
                     <Image
                       src={sponsorImage.imageUrl}
@@ -42,8 +41,7 @@ export default function Sponsors() {
                       data-ai-hint={sponsorImage.imageHint}
                     />
                   )}
-                </CardContent>
-              </Card>
+              </div>
             );
           })}
         </div>
