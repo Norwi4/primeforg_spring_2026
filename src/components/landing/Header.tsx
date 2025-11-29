@@ -3,8 +3,12 @@
 import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Gamepad2, Menu } from "lucide-react";
+import { Gamepad2, Menu, LogOut, UserCircle } from "lucide-react";
 import React from "react";
+import { useUser, useAuth } from "@/firebase";
+import { signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
+
 
 const TournamentIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <Gamepad2 {...props} />
@@ -13,6 +17,15 @@ const TournamentIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export default function Header() {
   const [isOpen, setIsOpen] = React.useState(false);
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/');
+  }
+
   const navLinks = [
     { href: "/#tournament", label: "Турнир" },
     { href: "/#sponsors", label: "Спонсоры" },
@@ -40,11 +53,27 @@ export default function Header() {
             </Link>
         </nav>
         <div className="flex items-center gap-4">
-          <Button variant="outline" asChild className="hidden md:inline-flex">
-            <Link href="/registration">
-              Зарегистрировать команду
-            </Link>
-          </Button>
+          {!isUserLoading && user ? (
+            <>
+               <Button variant="outline" asChild className="hidden md:inline-flex">
+                <Link href="/admin">
+                  <UserCircle className="mr-2 h-4 w-4" />
+                  Админ панель
+                </Link>
+              </Button>
+              <Button variant="outline" onClick={handleLogout} className="hidden md:inline-flex">
+                <LogOut className="mr-2 h-4 w-4" />
+                Выйти
+              </Button>
+            </>
+          ) : (
+            <Button variant="outline" asChild className="hidden md:inline-flex">
+              <Link href="/registration">
+                Зарегистрировать команду
+              </Link>
+            </Button>
+          )}
+
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="md:hidden">
@@ -73,7 +102,18 @@ export default function Header() {
                   <Link href="/registration" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground" onClick={() => setIsOpen(false)} prefetch={false}>
                     Регистрация
                   </Link>
+                  {!isUserLoading && user && (
+                     <Link href="/admin" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground" onClick={() => setIsOpen(false)} prefetch={false}>
+                      Админ панель
+                    </Link>
+                  )}
                 </nav>
+                 {!isUserLoading && user && (
+                    <Button variant="outline" onClick={() => { handleLogout(); setIsOpen(false); }}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Выйти
+                    </Button>
+                  )}
               </div>
             </SheetContent>
           </Sheet>

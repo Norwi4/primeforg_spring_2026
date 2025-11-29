@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { cn } from '@/lib/utils';
 import { Inter as FontSans } from "next/font/google"
 import { Orbitron } from 'next/font/google';
+import { FirebaseClientProvider } from '@/firebase';
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -34,7 +35,9 @@ export default function RootLayout({
           fontSans.variable,
           fontHeadline.variable
         )}>
-        {children}
+        <FirebaseClientProvider>
+          {children}
+        </FirebaseClientProvider>
         <Toaster />
       </body>
     </html>

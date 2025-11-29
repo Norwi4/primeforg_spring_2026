@@ -17,3 +17,20 @@ export type RegistrationFormState = {
   message: string;
   success: boolean;
 };
+
+export const loginSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters long." }),
+});
+
+export type LoginFormState = {
+  errors?: {
+    email?: string[];
+    password?: string[];
+    firebase?: string[];
+  };
+  message: string;
+  success: boolean;
+};
