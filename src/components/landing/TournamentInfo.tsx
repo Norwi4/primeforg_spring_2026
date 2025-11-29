@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Shield, Trophy, Users, Globe, Star } from "lucide-react";
+import { Calendar, Shield, Trophy, Users, Globe, Star, MapPin } from "lucide-react";
 
 const tournamentDetails = [
   {
@@ -11,6 +11,11 @@ const tournamentDetails = [
     icon: <Calendar className="h-10 w-10 text-primary" />,
     title: "Сезон: Весна 2026",
     description: "Турнир пройдет в самом сердце весны 2026 года. Точные даты и расписание матчей будут объявлены в ближайшее время. Не пропустите старт главного киберспортивного события года!",
+  },
+  {
+    icon: <MapPin className="h-10 w-10 text-primary" />,
+    title: "Место проведения: Калуга",
+    description: "Главные сражения турнира состоятся на современной киберспортивной арене в городе Калуга. Готовьтесь к незабываемой атмосфере!",
   },
   {
     icon: <Users className="h-10 w-10 text-primary" />,
@@ -49,7 +54,7 @@ export default function TournamentInfo() {
             </p>
           </div>
         </div>
-        <div className="mx-auto grid max-w-5xl items-stretch gap-6 sm:grid-cols-2 md:gap-8 lg:grid-cols-3 mt-12">
+        <div className="mx-auto grid max-w-7xl items-stretch gap-6 sm:grid-cols-2 md:gap-8 lg:grid-cols-3 mt-12">
           {tournamentDetails.map((detail, index) => (
             <Card key={index} className="bg-background/40 border-border/60 hover:border-primary/80 transition-all duration-300 flex flex-col group">
               <CardHeader className="flex flex-row items-start gap-4 pb-4">
