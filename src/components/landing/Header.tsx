@@ -3,15 +3,11 @@
 import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Gamepad2, Menu } from "lucide-react";
 import React from "react";
 
-const Dota2Icon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg {...props} viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M41.7647 1.05882L0 32.7647V80L41.7647 62.1176V1.05882Z" fill="#A42A28"/>
-        <path d="M128 48L86.2353 65.8824V127L128 95.2353V48Z" fill="#A42A28"/>
-        <path d="M41.7647 62.1176L0 80V127L128 48V1.05882L41.7647 62.1176Z" fill="#E4423A"/>
-    </svg>
+const TournamentIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <Gamepad2 {...props} />
 );
 
 
@@ -26,8 +22,8 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
         <Link href="#" className="flex items-center gap-3" prefetch={false} onClick={() => setIsOpen(false)}>
-          <Dota2Icon className="h-8 w-8" />
-          <span className="font-headline text-xl font-bold tracking-wider text-primary-foreground">Dota 2 Championship</span>
+          <TournamentIcon className="h-8 w-8 text-primary" />
+          <span className="font-headline text-xl font-bold tracking-wider text-primary-foreground">Esports Championship</span>
         </Link>
         <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
           {navLinks.map((link) => (
@@ -51,8 +47,8 @@ export default function Header() {
             <SheetContent side="right">
               <div className="grid gap-4 p-4">
                 <Link href="#" className="flex items-center gap-2" prefetch={false} onClick={() => setIsOpen(false)}>
-                  <Dota2Icon className="h-6 w-6" />
-                  <span className="font-headline text-lg font-bold text-primary-foreground">Dota 2 Championship</span>
+                  <TournamentIcon className="h-6 w-6 text-primary" />
+                  <span className="font-headline text-lg font-bold text-primary-foreground">Esports Championship</span>
                 </Link>
                 <nav className="grid gap-2 text-lg font-medium">
                   {navLinks.map((link) => (

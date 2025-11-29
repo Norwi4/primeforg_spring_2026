@@ -2,7 +2,7 @@
   "placeholderImages": [
     {
       "id": "hero-background",
-      "description": "Dota 2 tournament background",
+      "description": "Esports tournament background",
       "imageUrl": "https://images.unsplash.com/photo-1593011389275-add47849314c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxnYW1pbmclMjBlc3BvcnRzfGVufDB8fHx8MTc2NDYwOTg1NHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "esports gaming"
     },

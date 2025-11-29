@@ -18,8 +18,8 @@ const fontHeadline = Orbitron({
 
 
 export const metadata: Metadata = {
-  title: 'Dota 2 Tournament - Spring 2026',
-  description: 'The ultimate Dota 2 tournament is coming in Spring 2026. Get ready for epic battles and legendary plays.',
+  title: 'Esports Championship - Spring 2026',
+  description: 'The ultimate esports tournament is coming in Spring 2026, featuring Dota 2 and CS2. Get ready for epic battles and legendary plays.',
 };
 
 export default function RootLayout({

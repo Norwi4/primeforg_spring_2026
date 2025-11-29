@@ -23,13 +23,13 @@ export default function Hero() {
       <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-primary-foreground p-4">
         <div className="max-w-4xl">
           <h1 className="font-headline text-5xl font-bold uppercase tracking-widest sm:text-6xl md:text-7xl lg:text-8xl">
-            Dota 2 Championship
+            Esports Championship
           </h1>
           <p className="mt-4 font-headline text-2xl md:text-3xl text-primary tracking-wide">
-            Spring 2026
+            Dota 2 & CS2 - Spring 2026
           </p>
           <p className="mt-6 max-w-3xl mx-auto text-lg md:text-xl text-muted-foreground">
-            Величайший турнир по Dota 2 приближается. Приготовьтесь к эпическим сражениям и легендарным моментам.
+            Величайший киберспортивный турнир по Dota 2 и CS2 приближается. Приготовьтесь к эпическим сражениям и легендарным моментам.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild>
