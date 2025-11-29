@@ -4,6 +4,14 @@ import { z } from "zod";
 import { registrationSchema, type RegistrationFormState } from "@/lib/schema";
 import { getFirestore } from 'firebase-admin/firestore';
 import { getFirebaseAdminApp } from '@/firebase/admin';
+import { CollectionReference, DocumentReference } from 'firebase/firestore';
+import { setDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { firestore } from "firebase-admin";
+
+// This is a simplified approach for the MVP. In a real-world scenario,
+// you would have a more robust role-based access control system.
+const ADMIN_EMAIL = "admin@primeforg.gg";
+
 
 export async function submitRegistrationForm(
   data: z.infer<typeof registrationSchema>
@@ -17,12 +25,20 @@ export async function submitRegistrationForm(
       success: false,
     };
   }
+  
+  // Simplified admin check for MVP
+  if (validatedFields.data.email === ADMIN_EMAIL) {
+    return { 
+      message: "Admin user detected. No team registered.",
+      success: true, // Return success to not show an error on the form
+    };
+  }
 
   try {
     const adminApp = getFirebaseAdminApp();
-    const firestore = getFirestore(adminApp);
+    const db = getFirestore(adminApp);
     
-    await firestore.collection("teams").add({
+    await db.collection("teams").add({
       ...validatedFields.data,
       registrationDate: new Date().toISOString(),
     });
