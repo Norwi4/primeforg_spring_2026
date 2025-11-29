@@ -1,14 +1,38 @@
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const sponsors = [
-  { id: "sponsor-logo-1" },
-  { id: "sponsor-logo-2" },
-  { id: "sponsor-logo-3" },
-  { id: "sponsor-logo-4" },
-  { id: "sponsor-logo-5" },
-  { id: "sponsor-logo-6" },
+  { 
+    id: "sponsor-logo-1",
+    name: "TechNova",
+    description: "Передовые игровые технологии и оборудование."
+  },
+  { 
+    id: "sponsor-logo-2",
+    name: "CyberCore",
+    description: "Высокопроизводительные компоненты для ПК."
+  },
+  { 
+    id: "sponsor-logo-3",
+    name: "G-Fuel",
+    description: "Энергетические напитки для геймеров."
+  },
+  { 
+    id: "sponsor-logo-4",
+    name: "Quantum Leap",
+    description: "Облачные игровые сервисы и хостинг."
+  },
+  { 
+    id: "sponsor-logo-5",
+    name: "Nexus Gaming",
+    description: "Сеть игровых центров и арен."
+  },
+  { 
+    id: "sponsor-logo-6",
+    name: "PixelPerfect",
+    description: "Профессиональные игровые мониторы."
+  },
 ];
 
 export default function Sponsors() {
@@ -26,22 +50,30 @@ export default function Sponsors() {
             </p>
           </div>
         </div>
-        <div className="mt-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center">
+        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {sponsors.map((sponsor) => {
             const sponsorImage = PlaceHolderImages.find(p => p.id === sponsor.id);
             return (
-              <div key={sponsor.id} className="flex justify-center grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+              <Card key={sponsor.id} className="bg-background/40 border-border/60 hover:border-primary/80 transition-all duration-300 flex flex-col group text-center items-center">
+                <CardHeader className="pb-4">
                   {sponsorImage && (
-                    <Image
-                      src={sponsorImage.imageUrl}
-                      alt="Sponsor Logo"
-                      width={200}
-                      height={100}
-                      className="aspect-[2/1] object-contain"
-                      data-ai-hint={sponsorImage.imageHint}
-                    />
+                    <div className="flex justify-center grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300 p-4 rounded-lg">
+                      <Image
+                        src={sponsorImage.imageUrl}
+                        alt={`${sponsor.name} Logo`}
+                        width={158}
+                        height={79}
+                        className="aspect-[2/1] object-contain"
+                        data-ai-hint={sponsorImage.imageHint}
+                      />
+                    </div>
                   )}
-              </div>
+                  <CardTitle className="font-headline text-xl font-bold text-primary-foreground group-hover:text-primary transition-colors">{sponsor.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">{sponsor.description}</p>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
