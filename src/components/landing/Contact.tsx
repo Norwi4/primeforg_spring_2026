@@ -1,21 +1,46 @@
-import ContactForm from './ContactForm';
-
-export default function Contact() {
-  return (
-    <section id="contact" className="w-full py-12 md:py-24 lg:py-32 bg-secondary">
-      <div className="container mx-auto grid items-center justify-center gap-8 px-4 text-center md:px-6">
-        <div className="space-y-3">
-          <h2 className="font-headline text-3xl font-bold tracking-tighter md:text-4xl/tight text-primary">
-            Let's Start a Conversation
-          </h2>
-          <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed font-body">
-            Have a project in mind or just want to learn more? Fill out the form below, and we'd love to hear from you.
-          </p>
-        </div>
-        <div className="mx-auto w-full max-w-lg">
-          <ContactForm />
-        </div>
-      </div>
-    </section>
-  );
+{
+  "placeholderImages": [
+    {
+      "id": "hero-background",
+      "description": "Esports tournament background",
+      "imageUrl": "https://images.unsplash.com/photo-1593011389275-add47849314c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxnYW1pbmclMjBlc3BvcnRzfGVufDB8fHx8MTc2NDYwOTg1NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "esports gaming"
+    },
+    {
+      "id": "sponsor-logo-1",
+      "description": "Sponsor logo",
+      "imageUrl": "https://images.unsplash.com/photo-1625138644438-47f3b3c66880?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxsb2dvJTIwYnJhbmR8ZW58MHx8fHwxNzY0Mzc1NDM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "logo brand"
+    },
+    {
+      "id": "sponsor-logo-2",
+      "description": "Sponsor logo",
+      "imageUrl": "https://images.unsplash.com/photo-1625138644438-47f3b3c66880?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxsb2dvJTIwYnJhbmR8ZW58MHx8fHwxNzY0Mzc1NDM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "logo brand"
+    },
+    {
+      "id": "sponsor-logo-3",
+      "description": "Sponsor logo",
+      "imageUrl": "https://images.unsplash.com/photo-1738458786007-03c0c4b7a804?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxsb2dvJTIwYnJhbmR8ZW58MHx8fHwxNzY0Mzc1NDM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "logo brand"
+    },
+    {
+      "id": "sponsor-logo-4",
+      "description": "Sponsor logo",
+      "imageUrl": "https://images.unsplash.com/photo-1738458786007-03c0c4b7a804?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxsb2dvJTIwYnJhbmR8ZW58MHx8fHwxNzY0Mzc1NDM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "logo brand"
+    },
+    {
+      "id": "sponsor-logo-5",
+      "description": "Sponsor logo",
+      "imageUrl": "https://images.unsplash.com/photo-1621460244115-aae28aad2b45?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxsb2dvJTIwYnJhbmR8ZW58MHx8fHwxNzY0Mzc1NDM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "logo brand"
+    },
+    {
+      "id": "sponsor-logo-6",
+      "description": "Sponsor logo",
+      "imageUrl": "https://images.unsplash.com/photo-1707960119803-3b2880e847b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxsb2dvJTIwYnJhbmR8ZW58MHx8fHwxNzY0Mzc1NDM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "logo brand"
+    }
+  ]
 }

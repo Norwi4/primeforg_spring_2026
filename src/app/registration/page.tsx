@@ -20,9 +20,6 @@ export default function RegistrationPage() {
           <div className="mx-auto w-full max-w-lg bg-background p-8 rounded-lg shadow-lg">
             <RegistrationForm />
           </div>
-          <p className="text-xs text-muted-foreground">
-            Уже зарегистрировались? Если вам нужно внести изменения, свяжитесь с нами через <Link href="/#contact" className="underline hover:text-primary">форму обратной связи</Link>.
-          </p>
         </div>
       </main>
       <Footer />
