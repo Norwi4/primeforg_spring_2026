@@ -2,7 +2,7 @@ import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, Gamepad2, Shield } from "lucide-react";
 
 export default function Hero() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-background');
@@ -33,7 +33,16 @@ export default function Hero() {
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild>
-                <Link href="#tournament">Подробнее о турнире</Link>
+              <Link href="/registration">
+                <Shield className="mr-2 h-5 w-5" />
+                Зарегистрировать команду
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" asChild>
+                <Link href="#tournament">
+                  <Gamepad2 className="mr-2 h-5 w-5" />
+                  Подробнее о турнире
+                </Link>
             </Button>
           </div>
         </div>

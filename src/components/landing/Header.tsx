@@ -14,14 +14,14 @@ const TournamentIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function Header() {
   const [isOpen, setIsOpen] = React.useState(false);
   const navLinks = [
-    { href: "#tournament", label: "Турнир" },
-    { href: "#sponsors", label: "Спонсоры" },
+    { href: "/#tournament", label: "Турнир" },
+    { href: "/#sponsors", label: "Спонсоры" },
   ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
-        <Link href="#" className="flex items-center gap-3" prefetch={false} onClick={() => setIsOpen(false)}>
+        <Link href="/" className="flex items-center gap-3" prefetch={false} onClick={() => setIsOpen(false)}>
           <TournamentIcon className="h-8 w-8 text-primary" />
           <span className="font-headline text-xl font-bold tracking-wider text-primary-foreground">Esports Championship</span>
         </Link>
@@ -35,8 +35,16 @@ export default function Header() {
             >
               {link.label}
             </Link>))}
+            <Link href="/registration" className="text-muted-foreground transition-colors hover:text-foreground" prefetch={false}>
+                Регистрация
+            </Link>
         </nav>
         <div className="flex items-center gap-4">
+          <Button variant="outline" asChild className="hidden md:inline-flex">
+            <Link href="/registration">
+              Зарегистрировать команду
+            </Link>
+          </Button>
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="md:hidden">
@@ -62,6 +70,9 @@ export default function Header() {
                       {link.label}
                     </Link>
                   ))}
+                  <Link href="/registration" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground" onClick={() => setIsOpen(false)} prefetch={false}>
+                    Регистрация
+                  </Link>
                 </nav>
               </div>
             </SheetContent>
