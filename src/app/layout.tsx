@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'PrimeForage',
-  description: 'Growth, Stability, and Reliability',
+  title: 'Dota 2 Tournament - Spring 2026',
+  description: 'The ultimate Dota 2 tournament is coming in Spring 2026. Get ready for epic battles and legendary plays.',
 };
 
 export default function RootLayout({

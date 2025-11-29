@@ -2,51 +2,45 @@
   "placeholderImages": [
     {
       "id": "hero-background",
-      "description": "Abstract background for hero section",
-      "imageUrl": "https://images.unsplash.com/photo-1692132239924-51f3a6c33741?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmb3Jlc3QlMjBtZWV0aW5nfGVufDB8fHx8MTc2NDQ1MTgxM3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "forest meeting"
+      "description": "Dota 2 tournament background",
+      "imageUrl": "https://images.unsplash.com/photo-1593011389275-add47849314c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxnYW1pbmclMjBlc3BvcnRzfGVufDB8fHx8MTc2NDYwOTg1NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "esports gaming"
     },
     {
-      "id": "team-member-1",
-      "description": "Portrait of a team member",
-      "imageUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjQ0NTE4MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "professional portrait"
+      "id": "sponsor-logo-1",
+      "description": "Sponsor logo",
+      "imageUrl": "https://images.unsplash.com/photo-1625138644438-47f3b3c66880?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxsb2dvJTIwYnJhbmR8ZW58MHx8fHwxNzY0Mzc1NDM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "logo brand"
     },
     {
-      "id": "team-member-2",
-      "description": "Portrait of a team member",
-      "imageUrl": "https://images.unsplash.com/photo-1560250097-0b93528c311a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjQ0NTE4MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "professional portrait"
+      "id": "sponsor-logo-2",
+      "description": "Sponsor logo",
+      "imageUrl": "https://images.unsplash.com/photo-1625138644438-47f3b3c66880?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxsb2dvJTIwYnJhbmR8ZW58MHx8fHwxNzY0Mzc1NDM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "logo brand"
     },
     {
-      "id": "team-member-3",
-      "description": "Portrait of a team member",
-      "imageUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjQ0NTE4MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "professional portrait"
+      "id": "sponsor-logo-3",
+      "description": "Sponsor logo",
+      "imageUrl": "https://images.unsplash.com/photo-1738458786007-03c0c4b7a804?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxsb2dvJTIwYnJhbmR8ZW58MHx8fHwxNzY0Mzc1NDM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "logo brand"
     },
     {
-      "id": "team-member-4",
-      "description": "Portrait of a team member",
-      "imageUrl": "https://images.unsplash.com/photo-1655249493799-9cee4fe983bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjQ0NTE4MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "professional portrait"
+      "id": "sponsor-logo-4",
+      "description": "Sponsor logo",
+      "imageUrl": "https://images.unsplash.com/photo-1738458786007-03c0c4b7a804?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxsb2dvJTIwYnJhbmR8ZW58MHx8fHwxNzY0Mzc1NDM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "logo brand"
     },
     {
-      "id": "blog-post-1",
-      "description": "Image for a blog post",
-      "imageUrl": "https://images.unsplash.com/photo-1633158829875-e5316a358c6f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxidXNpbmVzcyUyMGdyb3d0aHxlbnwwfHx8fDE3NjQzNjk4NjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "business growth"
+      "id": "sponsor-logo-5",
+      "description": "Sponsor logo",
+      "imageUrl": "https://images.unsplash.com/photo-1621460244115-aae28aad2b45?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxsb2dvJTIwYnJhbmR8ZW58MHx8fHwxNzY0Mzc1NDM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "logo brand"
     },
     {
-      "id": "blog-post-2",
-      "description": "Image for a blog post",
-      "imageUrl": "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWFya2V0JTIwYW5hbHlzaXN8ZW58MHx8fHwxNzY0MzQ1MzMyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "market analysis"
-    },
-    {
-      "id": "blog-post-3",
-      "description": "Image for a blog post",
-      "imageUrl": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx0ZWFtJTIwY29sbGFib3JhdGlvbnxlbnwwfHx8fDE3NjQ0MjkxODJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team collaboration"
+      "id": "sponsor-logo-6",
+      "description": "Sponsor logo",
+      "imageUrl": "https://images.unsplash.com/photo-1707960119803-3b2880e847b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxsb2dvJTIwYnJhbmR8ZW58MHx8fHwxNzY0Mzc1NDM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "logo brand"
     }
   ]
 }

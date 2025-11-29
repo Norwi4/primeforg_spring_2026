@@ -1,10 +1,7 @@
 import Header from '@/components/landing/Header';
 import Hero from '@/components/landing/Hero';
-import Services from '@/components/landing/Services';
-import Team from '@/components/landing/Team';
-import Testimonials from '@/components/landing/Testimonials';
-import Blog from '@/components/landing/Blog';
-import Contact from '@/components/landing/Contact';
+import TournamentInfo from '@/components/landing/TournamentInfo';
+import Sponsors from '@/components/landing/Sponsors';
 import Footer from '@/components/landing/Footer';
 
 export default function Home() {
@@ -13,11 +10,8 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <Hero />
-        <Services />
-        <Team />
-        <Testimonials />
-        <Blog />
-        <Contact />
+        <TournamentInfo />
+        <Sponsors />
       </main>
       <Footer />
     </div>
