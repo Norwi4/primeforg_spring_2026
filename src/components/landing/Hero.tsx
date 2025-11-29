@@ -23,7 +23,7 @@ export default function Hero() {
       <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-primary-foreground p-4">
         <div className="max-w-4xl">
           <h1 className="font-headline text-5xl font-bold uppercase tracking-widest sm:text-6xl md:text-7xl lg:text-8xl">
-            Esports Championship
+            PrimeForg
           </h1>
           <p className="mt-4 font-headline text-2xl md:text-3xl text-primary tracking-wide">
             Dota 2 & CS2 - Spring 2026

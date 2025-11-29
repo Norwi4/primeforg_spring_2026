@@ -23,7 +23,7 @@ export default function Header() {
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-3" prefetch={false} onClick={() => setIsOpen(false)}>
           <TournamentIcon className="h-8 w-8 text-primary" />
-          <span className="font-headline text-xl font-bold tracking-wider text-primary-foreground">Esports Championship</span>
+          <span className="font-headline text-xl font-bold tracking-wider text-primary-foreground">PrimeForg</span>
         </Link>
         <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
           {navLinks.map((link) => (
@@ -56,7 +56,7 @@ export default function Header() {
               <div className="grid gap-4 p-4">
                 <Link href="#" className="flex items-center gap-2" prefetch={false} onClick={() => setIsOpen(false)}>
                   <TournamentIcon className="h-6 w-6 text-primary" />
-                  <span className="font-headline text-lg font-bold text-primary-foreground">Esports Championship</span>
+                  <span className="font-headline text-lg font-bold text-primary-foreground">PrimeForg</span>
                 </Link>
                 <nav className="grid gap-2 text-lg font-medium">
                   {navLinks.map((link) => (

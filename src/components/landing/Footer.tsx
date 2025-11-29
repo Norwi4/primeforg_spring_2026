@@ -21,10 +21,10 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
             <TournamentIcon className="h-8 w-8 text-accent" />
-            <span className="font-headline text-lg font-bold">Esports Championship</span>
+            <span className="font-headline text-lg font-bold">PrimeForg</span>
           </div>
           <p className="text-sm text-center md:text-left text-muted-foreground">
-            © {currentYear ? currentYear : new Date().getFullYear()} Esports Championship. Все права защищены.
+            © {currentYear ? currentYear : new Date().getFullYear()} PrimeForg. Все права защищены.
           </p>
           <div className="flex items-center gap-4">
             <Link href="#" aria-label="Twitter" className="text-muted-foreground transition-colors hover:text-foreground" prefetch={false}>

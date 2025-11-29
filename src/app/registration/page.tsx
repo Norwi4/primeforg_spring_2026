@@ -14,7 +14,7 @@ export default function RegistrationPage() {
               Регистрация команды на турнир
             </h1>
             <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Заполните форму ниже, чтобы заявить о своем участии в Esports Championship Spring 2026.
+              Заполните форму ниже, чтобы заявить о своем участии в PrimeForg Spring 2026.
             </p>
           </div>
           <div className="mx-auto w-full max-w-lg bg-background p-8 rounded-lg shadow-lg">
