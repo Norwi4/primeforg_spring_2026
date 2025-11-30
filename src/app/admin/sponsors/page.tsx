@@ -1,10 +1,9 @@
 'use client';
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useStorage } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import Header from '@/components/landing/Header';
 import Footer from '@/components/landing/Footer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,11 +13,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFo
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from '@/components/ui/label';
-import { Loader2, PlusCircle, Edit, Trash2, Upload, AlertCircle } from 'lucide-react';
+import { Loader2, PlusCircle, Edit, Trash2, AlertCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { sponsorSchema } from '@/lib/schema';
+import { sponsorSchema, SponsorPayload } from '@/lib/schema';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 type Sponsor = {
   id: string;
@@ -31,17 +32,12 @@ export default function AdminSponsorsPage() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
-  const storage = useStorage();
   const { toast } = useToast();
   
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-
-  const formRef = useRef<HTMLFormElement>(null);
 
   const sponsorsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -56,51 +52,21 @@ export default function AdminSponsorsPage() {
     }
   }, [user, isUserLoading, router]);
 
-  useEffect(() => {
-    if (!dialogOpen) {
-      setEditingSponsor(null);
-      setImagePreview(null);
-      setSelectedFile(null);
-      setFormError(null);
-      formRef.current?.reset();
-    }
-  }, [dialogOpen]);
-
-  useEffect(() => {
-    if (editingSponsor) {
-        setImagePreview(editingSponsor.imageUrl);
-    } else {
-        setImagePreview(null);
-    }
-  }, [editingSponsor]);
-  
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setSelectedFile(null);
-      setImagePreview(editingSponsor?.imageUrl || null);
-    }
-  };
-
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!firestore || !storage) return;
+    if (!firestore) return;
     
     setIsSubmitting(true);
     setFormError(null);
 
     const formData = new FormData(event.currentTarget);
-    const name = formData.get('name') as string;
-    const description = formData.get('description') as string;
+    const payload: SponsorPayload = {
+      name: formData.get('name') as string,
+      description: formData.get('description') as string,
+      imageUrl: formData.get('imageUrl') as string,
+    };
 
-    const validatedFields = sponsorSchema.safeParse({ name, description });
+    const validatedFields = sponsorSchema.safeParse(payload);
 
     if (!validatedFields.success) {
       const firstError = validatedFields.error.errors[0]?.message || "Validation failed.";
@@ -109,40 +75,26 @@ export default function AdminSponsorsPage() {
       return;
     }
     
-    let imageUrl = editingSponsor?.imageUrl;
-
     try {
-      if (selectedFile) {
-        const filePath = `sponsors/${Date.now()}_${selectedFile.name}`;
-        const fileRef = storageRef(storage, filePath);
-        const metadata = { contentType: selectedFile.type };
-        const uploadTask = uploadBytesResumable(fileRef, selectedFile, metadata);
-
-        // Wait for the upload to complete
-        await uploadTask;
-        
-        imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
-
-      }
-
-      if (!imageUrl) {
-        setFormError('Sponsor logo is required.');
-        setIsSubmitting(false);
-        return;
-      }
-      
-      const sponsorData = {
-          name: validatedFields.data.name,
-          description: validatedFields.data.description,
-          imageUrl,
-      };
-
       if (editingSponsor) {
         const sponsorDocRef = doc(firestore, 'sponsors', editingSponsor.id);
-        await updateDoc(sponsorDocRef, sponsorData);
+        updateDoc(sponsorDocRef, validatedFields.data).catch(err => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: sponsorDocRef.path,
+                operation: 'update',
+                requestResourceData: validatedFields.data,
+            }));
+        });
         toast({ title: "Sponsor updated successfully!" });
       } else {
-        await addDoc(collection(firestore, 'sponsors'), sponsorData);
+        const sponsorsCollection = collection(firestore, 'sponsors');
+        addDoc(sponsorsCollection, validatedFields.data).catch(err => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: sponsorsCollection.path,
+                operation: 'create',
+                requestResourceData: validatedFields.data,
+            }));
+        });
         toast({ title: "Sponsor added successfully!" });
       }
 
@@ -174,13 +126,14 @@ export default function AdminSponsorsPage() {
 
   const handleDelete = async (id: string) => {
     if (!firestore) return;
-    try {
-      await deleteDoc(doc(firestore, "sponsors", id));
-      toast({ title: "Спонсор удален" });
-    } catch (e) {
-      console.error(e);
-      toast({ variant: "destructive", title: "Ошибка при удалении спонсора" });
-    }
+    const sponsorDocRef = doc(firestore, "sponsors", id);
+    deleteDoc(sponsorDocRef).catch(err => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: sponsorDocRef.path,
+            operation: 'delete',
+        }));
+    });
+    toast({ title: "Спонсор удален" });
   };
   
   if (isUserLoading || !user) {
@@ -272,7 +225,7 @@ export default function AdminSponsorsPage() {
               <DialogHeader>
                 <DialogTitle>{editingSponsor ? 'Редактировать спонсора' : 'Добавить спонсора'}</DialogTitle>
               </DialogHeader>
-                <form ref={formRef} onSubmit={handleFormSubmit} className="space-y-4">
+                <form onSubmit={handleFormSubmit} className="space-y-4">
                     {formError && (
                         <Alert variant="destructive">
                             <AlertCircle className="h-4 w-4" />
@@ -292,20 +245,11 @@ export default function AdminSponsorsPage() {
                     </div>
                     
                     <div className="space-y-2">
-                        <Label>Логотип</Label>
-                        <div className="flex items-center gap-4">
-                            <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted/50">
-                            {imagePreview ? (
-                                <Image src={imagePreview} alt="Предпросмотр" width={96} height={96} className="object-contain rounded-md"/>
-                            ) : (
-                                <div className="text-center text-muted-foreground">
-                                    <Upload className="mx-auto h-6 w-6"/>
-                                    <span className="text-xs">Загрузите</span>
-                                </div>
-                            )}
-                            </div>
-                            <Input id="image" name="image" type="file" className="flex-1" onChange={handleFileChange} accept="image/png, image/jpeg, image/gif, image/webp" />
-                        </div>
+                        <Label htmlFor="imageUrl">URL Логотипа</Label>
+                        <Input id="imageUrl" name="imageUrl" placeholder="https://example.com/logo.png" defaultValue={editingSponsor?.imageUrl} required />
+                         {editingSponsor?.imageUrl && (
+                            <Image src={editingSponsor.imageUrl} alt="предпросмотр" width={100} height={50} className="mt-2 object-contain rounded-md bg-muted p-1"/>
+                         )}
                     </div>
 
                   <DialogFooter>

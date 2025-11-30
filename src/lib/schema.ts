@@ -38,6 +38,7 @@ export type LoginFormState = {
 export const sponsorSchema = z.object({
   name: z.string().min(2, { message: "Название спонсора должно быть не менее 2 символов." }),
   description: z.string().min(10, { message: "Описание должно содержать не менее 10 символов." }),
+  imageUrl: z.string().url({ message: "Требуется действительный URL-адрес для логотипа." }),
 });
 
 export type SponsorFormState = {
@@ -46,13 +47,4 @@ export type SponsorFormState = {
   success: boolean;
 };
 
-export type SponsorPayload = {
-  id?: string;
-  name: string;
-  description: string;
-  image?: {
-    base64: string;
-    type: string;
-  };
-  existingImageUrl?: string;
-}
+export type SponsorPayload = z.infer<typeof sponsorSchema>;

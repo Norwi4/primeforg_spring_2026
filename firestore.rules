@@ -63,9 +63,7 @@ service cloud.firestore {
     match /teams/{teamId} {
       allow get: if isSignedIn();
       allow list: if isSignedIn();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow write: if false;
     }
 
     /**
@@ -93,11 +91,8 @@ service cloud.firestore {
      * @principle Prevents client-side tampering with authorization roles.
      */
     match /roles_admin/{userId} {
-      allow get: if false;
-      allow list: if false;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow read: if false;
+      allow write: if false;
     }
   }
 }
