@@ -1,5 +1,6 @@
 
 import { initializeApp, getApp, getApps, App, cert } from 'firebase-admin/app';
+import { getStorage } from 'firebase-admin/storage';
 import { getServiceAccount } from './service-account';
 
 const appName = 'firebase-admin-app';

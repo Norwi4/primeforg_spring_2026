@@ -5,23 +5,14 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'avatars.mds.yandex.net',
-        port: '',
-        pathname: '**',
       },
       {
         protocol: 'https',
         hostname: 'firebasestorage.googleapis.com',
-        port: '',
-        pathname: '**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '**',
       }
     ],
   },
+  env: {}
 };
 
 export default nextConfig;
