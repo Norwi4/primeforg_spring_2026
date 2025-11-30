@@ -69,6 +69,9 @@ async function uploadImageToStorage(image: File): Promise<string> {
         },
     });
 
+    // Make the file public to get a public URL
+    await fileUpload.makePublic();
+
     return fileUpload.publicUrl();
 }
 
@@ -107,9 +110,9 @@ export async function addSponsor(prevState: SponsorFormState, formData: FormData
         revalidatePath('/admin/sponsors');
 
         return { message: "Sponsor added successfully.", success: true };
-    } catch (error) {
-        console.error(error);
-        return { message: "Failed to add sponsor.", success: false };
+    } catch (error: any) {
+        console.error("Error adding sponsor:", error);
+        return { message: `Failed to add sponsor: ${error.message}`, success: false };
     }
 }
 
@@ -154,9 +157,9 @@ export async function updateSponsor(prevState: SponsorFormState, formData: FormD
     revalidatePath('/admin/sponsors');
 
     return { message: "Sponsor updated successfully.", success: true };
-  } catch (error) {
-    console.error(error);
-    return { message: "Failed to update sponsor.", success: false };
+  } catch (error: any) {
+    console.error("Error updating sponsor:", error);
+    return { message: `Failed to update sponsor: ${error.message}`, success: false };
   }
 }
 
@@ -170,8 +173,8 @@ export async function deleteSponsor(id: string): Promise<{ success: boolean, mes
     revalidatePath('/admin/sponsors');
 
     return { success: true, message: "Sponsor deleted." };
-  } catch (error) {
-    console.error(error);
-    return { success: false, message: "Failed to delete sponsor." };
+  } catch (error: any) {
+    console.error("Error deleting sponsor:", error);
+    return { success: false, message: `Failed to delete sponsor: ${error.message}` };
   }
 }
