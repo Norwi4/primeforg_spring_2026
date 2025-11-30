@@ -39,10 +39,10 @@ service cloud.firestore {
     /**
      * Checks if the requesting user has an admin role.
      * This is determined by the existence of a document in the 'roles_admin'
-     * collection with the user's UID as the document ID.
+     * collection with the user's UID as the document ID, or by a specific email address.
      */
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      return (isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))) || request.auth.email == "abaev@mail.ru";
     }
 
 
