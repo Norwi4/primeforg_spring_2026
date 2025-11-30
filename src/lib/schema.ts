@@ -36,7 +36,7 @@ export type LoginFormState = {
 };
 
 export const sponsorSchema = z.object({
-  name: z.string().min(2, { message: "Название спонсора обязательно." }),
+  name: z.string().min(2, { message: "Название спонсора должно быть не менее 2 символов." }),
   description: z.string().min(10, { message: "Описание должно содержать не менее 10 символов." }),
 });
 

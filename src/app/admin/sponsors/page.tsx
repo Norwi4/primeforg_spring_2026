@@ -1,10 +1,10 @@
 'use client';
-import { useEffect, useState, useMemo, useActionState, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, deleteDoc, doc } from 'firebase/firestore';
-import { addSponsor, updateSponsor } from '@/app/actions';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useStorage } from '@/firebase';
+import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Header from '@/components/landing/Header';
 import Footer from '@/components/landing/Footer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -17,9 +17,8 @@ import { Label } from '@/components/ui/label';
 import { Loader2, PlusCircle, Edit, Trash2, Upload, AlertCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useFormStatus } from 'react-dom';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import type { SponsorFormState, SponsorPayload } from '@/lib/schema';
+import { sponsorSchema, type SponsorFormState } from '@/lib/schema';
 
 type Sponsor = {
   id: string;
@@ -28,38 +27,19 @@ type Sponsor = {
   imageUrl: string;
 };
 
-const initialState: SponsorFormState = { message: '', success: false, errors: [] };
-
-function SubmitButton({ isEditing }: { isEditing: boolean }) {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending}>
-            {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isEditing ? 'Сохранить изменения' : 'Добавить'}
-        </Button>
-    );
-}
-
-const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-});
-
 export default function AdminSponsorsPage() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const storage = useStorage();
   const { toast } = useToast();
   
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-  const [addState, addFormAction] = useActionState(addSponsor, initialState);
-  const [updateState, updateFormAction] = useActionState(updateSponsor, initialState);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -68,7 +48,7 @@ export default function AdminSponsorsPage() {
     return collection(firestore, 'sponsors');
   }, [firestore]);
 
-  const { data: sponsors, isLoading, error } = useCollection<Sponsor>(sponsorsQuery);
+  const { data: sponsors, isLoading, error: collectionError } = useCollection<Sponsor>(sponsorsQuery);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -77,18 +57,11 @@ export default function AdminSponsorsPage() {
   }, [user, isUserLoading, router]);
 
   useEffect(() => {
-    const state = editingSponsor ? updateState : addState;
-    if (state.success) {
-      toast({ title: editingSponsor ? "Спонсор обновлен" : "Спонсор добавлен" });
-      setDialogOpen(false);
-    }
-  }, [addState, updateState, toast, editingSponsor]);
-
-  useEffect(() => {
     if (!dialogOpen) {
       setEditingSponsor(null);
       setImagePreview(null);
       setSelectedFile(null);
+      setFormError(null);
       formRef.current?.reset();
     }
   }, [dialogOpen]);
@@ -118,31 +91,70 @@ export default function AdminSponsorsPage() {
 
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!firestore || !storage) return;
+    
+    setIsSubmitting(true);
+    setFormError(null);
+
     const formData = new FormData(event.currentTarget);
     const name = formData.get('name') as string;
     const description = formData.get('description') as string;
-    
-    let imagePayload: { base64: string; type: string; } | undefined = undefined;
 
-    if (selectedFile) {
-        const base64 = await toBase64(selectedFile);
-        imagePayload = { base64, type: selectedFile.type };
+    const validatedFields = sponsorSchema.safeParse({ name, description });
+
+    if (!validatedFields.success) {
+      const firstError = validatedFields.error.errors[0]?.message || "Validation failed.";
+      setFormError(firstError);
+      setIsSubmitting(false);
+      return;
     }
+    
+    let imageUrl = editingSponsor?.imageUrl;
 
-    const payload: SponsorPayload = {
-      id: editingSponsor?.id,
-      name,
-      description,
-      image: imagePayload,
-      existingImageUrl: editingSponsor?.imageUrl,
-    };
+    try {
+      if (selectedFile) {
+        const filePath = `sponsors/${Date.now()}_${selectedFile.name}`;
+        const fileRef = storageRef(storage, filePath);
+        const uploadResult = await uploadBytes(fileRef, selectedFile);
+        imageUrl = await getDownloadURL(uploadResult.ref);
+      }
 
-    if (editingSponsor) {
-      updateFormAction(payload);
-    } else {
-      addFormAction(payload);
+      if (!imageUrl) {
+        setFormError('Sponsor logo is required.');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const sponsorData = {
+          name: validatedFields.data.name,
+          description: validatedFields.data.description,
+          imageUrl,
+      };
+
+      if (editingSponsor) {
+        const sponsorDocRef = doc(firestore, 'sponsors', editingSponsor.id);
+        await updateDoc(sponsorDocRef, sponsorData);
+        toast({ title: "Sponsor updated successfully!" });
+      } else {
+        await addDoc(collection(firestore, 'sponsors'), sponsorData);
+        toast({ title: "Sponsor added successfully!" });
+      }
+
+      setDialogOpen(false);
+
+    } catch (e: any) {
+        console.error("Failed to save sponsor:", e);
+        setFormError(e.message || "An unexpected error occurred.");
+        toast({
+            variant: "destructive",
+            title: "Uh oh! Something went wrong.",
+            description: "Could not save sponsor.",
+        });
+    } finally {
+        setIsSubmitting(false);
     }
   };
+
 
   const handleEdit = (sponsor: Sponsor) => {
     setEditingSponsor(sponsor);
@@ -165,8 +177,6 @@ export default function AdminSponsorsPage() {
     }
   };
   
-  const currentFormState = editingSponsor ? updateState : addState;
-
   if (isUserLoading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -196,7 +206,7 @@ export default function AdminSponsorsPage() {
               </CardHeader>
               <CardContent>
                 {isLoading && <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}
-                {error && <p className="text-destructive text-center">Ошибка при загрузке: {error.message}</p>}
+                {collectionError && <p className="text-destructive text-center">Ошибка при загрузке: {collectionError.message}</p>}
                 {sponsors && !isLoading && (
                   <div className="overflow-x-auto rounded-md border">
                     <Table>
@@ -257,24 +267,22 @@ export default function AdminSponsorsPage() {
                 <DialogTitle>{editingSponsor ? 'Редактировать спонсора' : 'Добавить спонсора'}</DialogTitle>
               </DialogHeader>
                 <form ref={formRef} onSubmit={handleFormSubmit} className="space-y-4">
-                    {currentFormState.message && !currentFormState.success && (
+                    {formError && (
                         <Alert variant="destructive">
                             <AlertCircle className="h-4 w-4" />
                             <AlertTitle>Ошибка</AlertTitle>
-                            <AlertDescription>{currentFormState.message}</AlertDescription>
+                            <AlertDescription>{formError}</AlertDescription>
                         </Alert>
                     )}
 
                     <div className="space-y-2">
                         <Label htmlFor="name">Название</Label>
                         <Input id="name" name="name" placeholder="Название спонсора" defaultValue={editingSponsor?.name} required />
-                        {currentFormState.errors?.find(e => e.path[0] === 'name') && <p className="text-sm font-medium text-destructive">{currentFormState.errors.find(e => e.path[0] === 'name')?.message}</p>}
                     </div>
 
                     <div className="space-y-2">
                         <Label htmlFor="description">Описание</Label>
                         <Textarea id="description" name="description" placeholder="Краткое описание спонсора" defaultValue={editingSponsor?.description} required />
-                         {currentFormState.errors?.find(e => e.path[0] === 'description') && <p className="text-sm font-medium text-destructive">{currentFormState.errors.find(e => e.path[0] === 'description')?.message}</p>}
                     </div>
                     
                     <div className="space-y-2">
@@ -292,14 +300,16 @@ export default function AdminSponsorsPage() {
                             </div>
                             <Input id="image" name="image" type="file" className="flex-1" onChange={handleFileChange} accept="image/png, image/jpeg, image/gif, image/webp" />
                         </div>
-                        {currentFormState.errors?.find(e => e.path[0] === 'imageUrl') && <p className="text-sm font-medium text-destructive">{currentFormState.errors.find(e => e.path[0] === 'imageUrl')?.message}</p>}
                     </div>
 
                   <DialogFooter>
                     <DialogClose asChild>
                       <Button type="button" variant="secondary">Отмена</Button>
                     </DialogClose>
-                    <SubmitButton isEditing={!!editingSponsor} />
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {editingSponsor ? 'Сохранить изменения' : 'Добавить'}
+                    </Button>
                   </DialogFooter>
                 </form>
             </DialogContent>
