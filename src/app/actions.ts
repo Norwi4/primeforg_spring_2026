@@ -171,5 +171,3 @@ export async function deleteSponsor(id: string): Promise<{ success: boolean, mes
     return { success: false, message: `Failed to delete sponsor: ${error.message}` };
   }
 }
-
-    

@@ -56,5 +56,3 @@ export type SponsorPayload = {
   };
   existingImageUrl?: string;
 }
-
-    
