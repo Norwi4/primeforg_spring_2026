@@ -28,9 +28,11 @@ export default function AdminPage() {
   const firestore = useFirestore();
 
   const teamsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+    // Only create the query if firestore and user are available.
+    // This prevents requests with null authentication.
+    if (!firestore || !user) return null;
     return collection(firestore, 'teams');
-  }, [firestore]);
+  }, [firestore, user]);
 
   const { data: teams, isLoading, error } = useCollection<Team>(teamsQuery);
   
