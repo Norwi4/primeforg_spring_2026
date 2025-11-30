@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +28,7 @@ export default function RegistrationForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const firestore = useFirestore();
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof registrationSchema>>({
     resolver: zodResolver(registrationSchema),
@@ -48,6 +50,7 @@ export default function RegistrationForm() {
         description: result.message,
       });
       form.reset();
+      router.push('/');
     } else {
       if (result.errors) {
         Object.entries(result.errors).forEach(([field, messages]) => {
