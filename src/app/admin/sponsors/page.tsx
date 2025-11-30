@@ -3,8 +3,8 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useStorage } from '@/firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import Header from '@/components/landing/Header';
 import Footer from '@/components/landing/Footer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,7 +18,7 @@ import { Loader2, PlusCircle, Edit, Trash2, Upload, AlertCircle } from 'lucide-r
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { sponsorSchema, type SponsorFormState } from '@/lib/schema';
+import { sponsorSchema } from '@/lib/schema';
 
 type Sponsor = {
   id: string;
@@ -115,8 +115,14 @@ export default function AdminSponsorsPage() {
       if (selectedFile) {
         const filePath = `sponsors/${Date.now()}_${selectedFile.name}`;
         const fileRef = storageRef(storage, filePath);
-        const uploadResult = await uploadBytes(fileRef, selectedFile);
-        imageUrl = await getDownloadURL(uploadResult.ref);
+        const metadata = { contentType: selectedFile.type };
+        const uploadTask = uploadBytesResumable(fileRef, selectedFile, metadata);
+
+        // Wait for the upload to complete
+        await uploadTask;
+        
+        imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
+
       }
 
       if (!imageUrl) {
