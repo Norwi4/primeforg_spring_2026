@@ -1,9 +1,11 @@
 'use client';
-import { useEffect, useState, useMemo } from 'react';
+
+import { useState, useEffect, useMemo, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useStorage } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import Header from '@/components/landing/Header';
 import Footer from '@/components/landing/Footer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -54,7 +56,7 @@ export default function AdminSponsorsPage() {
 
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!firestore) return;
+    if (!firestore || !user) return;
     
     setIsSubmitting(true);
     setFormError(null);
@@ -65,7 +67,7 @@ export default function AdminSponsorsPage() {
       description: formData.get('description') as string,
       imageUrl: formData.get('imageUrl') as string,
     };
-
+    
     const validatedFields = sponsorSchema.safeParse(payload);
 
     if (!validatedFields.success) {
@@ -75,8 +77,7 @@ export default function AdminSponsorsPage() {
       return;
     }
     
-    try {
-      if (editingSponsor) {
+    if (editingSponsor) {
         const sponsorDocRef = doc(firestore, 'sponsors', editingSponsor.id);
         updateDoc(sponsorDocRef, validatedFields.data).catch(err => {
             errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -86,7 +87,7 @@ export default function AdminSponsorsPage() {
             }));
         });
         toast({ title: "Sponsor updated successfully!" });
-      } else {
+    } else {
         const sponsorsCollection = collection(firestore, 'sponsors');
         addDoc(sponsorsCollection, validatedFields.data).catch(err => {
             errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -96,32 +97,22 @@ export default function AdminSponsorsPage() {
             }));
         });
         toast({ title: "Sponsor added successfully!" });
-      }
-
-      setDialogOpen(false);
-
-    } catch (e: any) {
-        console.error("Failed to save sponsor:", e);
-        setFormError(e.message || "An unexpected error occurred.");
-        toast({
-            variant: "destructive",
-            title: "Uh oh! Something went wrong.",
-            description: "Could not save sponsor.",
-        });
-    } finally {
-        setIsSubmitting(false);
     }
-  };
 
+    setIsSubmitting(false);
+    setDialogOpen(false);
+  };
 
   const handleEdit = (sponsor: Sponsor) => {
     setEditingSponsor(sponsor);
     setDialogOpen(true);
+    setFormError(null);
   };
 
   const handleAddNew = () => {
     setEditingSponsor(null);
     setDialogOpen(true);
+    setFormError(null);
   };
 
   const handleDelete = async (id: string) => {
@@ -246,7 +237,7 @@ export default function AdminSponsorsPage() {
                     
                     <div className="space-y-2">
                         <Label htmlFor="imageUrl">URL Логотипа</Label>
-                        <Input id="imageUrl" name="imageUrl" placeholder="https://example.com/logo.png" defaultValue={editingSponsor?.imageUrl} required />
+                        <Input id="imageUrl" name="imageUrl" type="url" placeholder="https://example.com/logo.png" defaultValue={editingSponsor?.imageUrl} required />
                          {editingSponsor?.imageUrl && (
                             <Image src={editingSponsor.imageUrl} alt="предпросмотр" width={100} height={50} className="mt-2 object-contain rounded-md bg-muted p-1"/>
                          )}
