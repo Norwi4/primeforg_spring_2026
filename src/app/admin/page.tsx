@@ -3,15 +3,19 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, doc, deleteDoc } from 'firebase/firestore';
 import Header from '@/components/landing/Header';
 import Footer from '@/components/landing/Footer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Users, Handshake } from 'lucide-react';
+import { Loader2, Users, Handshake, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 type Team = {
     id: string;
@@ -26,10 +30,9 @@ export default function AdminPage() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
 
   const teamsQuery = useMemoFirebase(() => {
-    // Only create the query if firestore and user are available.
-    // This prevents requests with null authentication.
     if (!firestore || !user) return null;
     return collection(firestore, 'teams');
   }, [firestore, user]);
@@ -41,6 +44,20 @@ export default function AdminPage() {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
+
+  const handleDeleteTeam = async (teamId: string) => {
+    if (!firestore) return;
+    const teamDocRef = doc(firestore, 'teams', teamId);
+    try {
+        await deleteDoc(teamDocRef);
+        toast({ title: "Команда удалена" });
+    } catch(err) {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: teamDocRef.path,
+            operation: 'delete',
+        }));
+    }
+  };
 
   if (isUserLoading || !user) {
     return (
@@ -95,6 +112,7 @@ export default function AdminPage() {
                           <TableHead>Email</TableHead>
                           <TableHead>Дисциплина</TableHead>
                           <TableHead>Дата регистрации</TableHead>
+                          <TableHead className="text-right">Действия</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -105,6 +123,27 @@ export default function AdminPage() {
                             <TableCell>{team.email}</TableCell>
                             <TableCell>{team.game === 'dota2' ? 'Dota 2' : 'CS2'}</TableCell>
                             <TableCell>{format(new Date(team.registrationDate), 'dd.MM.yyyy HH:mm')}</TableCell>
+                            <TableCell className="text-right">
+                               <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                      <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Это действие нельзя отменить. Команда будет удалена навсегда.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Отмена</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteTeam(team.id)}>Удалить</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                               </AlertDialog>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
