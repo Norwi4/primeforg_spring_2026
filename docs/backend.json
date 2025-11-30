@@ -31,6 +31,37 @@
         "registrationDate",
         "contactEmail"
       ]
+    },
+    "Sponsor": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Sponsor",
+      "type": "object",
+      "description": "Represents a sponsor of the tournament.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Sponsor."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the sponsor."
+        },
+        "description": {
+          "type": "string",
+          "description": "A short description of the sponsor."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the sponsor's logo.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "imageUrl"
+      ]
     }
   },
   "auth": {
@@ -53,6 +84,22 @@
             {
               "name": "teamId",
               "description": "Unique identifier for the team."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/sponsors/{sponsorId}",
+        "definition": {
+          "entityName": "Sponsor",
+          "schema": {
+            "$ref": "#/backend/entities/Sponsor"
+          },
+          "description": "Stores sponsor information.",
+          "params": [
+            {
+              "name": "sponsorId",
+              "description": "Unique identifier for the sponsor."
             }
           ]
         }

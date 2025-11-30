@@ -34,3 +34,19 @@ export type LoginFormState = {
   message: string;
   success: boolean;
 };
+
+export const sponsorSchema = z.object({
+  name: z.string().min(2, { message: "Название спонсора обязательно." }),
+  description: z.string().min(10, { message: "Описание должно содержать не менее 10 символов." }),
+  imageUrl: z.string().url({ message: "Неверный формат URL изображения." }),
+});
+
+export type SponsorFormState = {
+  errors?: {
+    name?: string[];
+    description?: string[];
+    imageUrl?: string[];
+  };
+  message: string;
+  success: boolean;
+};

@@ -9,20 +9,17 @@
  * trusted server environment (e.g., Cloud Functions).
  *
  * Data Structure:
- * The data is organized into two distinct top-level collections:
+ * The data is organized into distinct top-level collections:
  * - /teams/{teamId}: Stores information about registered teams.
+ * - /sponsors/{sponsorId}: Stores information about tournament sponsors.
  * - /roles_admin/{userId}: A lookup collection where the existence of a document grants a user admin privileges.
  *
  * Key Security Decisions:
  * - Admin-Only Reads: Only users with a corresponding document in the /roles_admin collection can read from the /teams collection.
- * - No Client-Side Writes: To ensure data integrity and prevent unauthorized modifications, all write operations on the /teams collection are disabled for clients.
+ * - Public Reads for Sponsors: The /sponsors collection is publicly readable by anyone, as this information is displayed on the main page.
+ * - Admin-Only Writes: Only admins can create, update, or delete documents in the /sponsors collection.
+ * - No Client-Side Writes on Teams: To ensure data integrity and prevent unauthorized modifications, all write operations on the /teams collection are disabled for clients.
  * - Secure Role Management: The /roles_admin collection is completely locked down from client access to prevent users from escalating their own privileges. Roles must be managed through the Firebase Console or a secure backend process.
- *
- * Denormalization for Authorization:
- * The /roles_admin collection is a prime example of denormalization for authorization. Instead of storing a role field on a user object, this separate collection allows for a simple and highly performant `exists()` check within the security rules to determine if a user is an admin, without needing to grant read access to any user documents.
- *
- * Structural Segregation:
- * The ruleset maintains a clean separation of concerns. The `teams` collection holds public-facing data (for admins), while the `roles_admin` collection is purely for internal authorization logic, and the rules reflect this by locking it down completely.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -55,20 +52,34 @@ service cloud.firestore {
 
     /**
      * @description
-     *   Manages access to team registration data. Only authenticated admins are
-     *   allowed to read this information. All client-side write operations are
+     *   Manages access to team registration data. Any authenticated user can
+     *   read this information. All client-side write operations are
      *   denied to ensure data is only created or modified by a trusted backend.
      * @path /teams/{teamId}
-     * @allow An authenticated admin user `(get)`s a specific team document.
-     * @deny A non-admin signed-in user tries to `(list)` the teams collection.
-     * @principle Implements Role-Based Access Control (RBAC) for read operations and prevents all client-side writes.
+     * @allow An authenticated user `(get)`s or `(list)`s team documents.
+     * @deny A non-admin signed-in user tries to `(create)` a team document.
+     * @principle Implements simple access control for reads and prevents all client-side writes.
      */
     match /teams/{teamId} {
-      allow get: if isAdmin();
+      allow get: if isSignedIn();
       allow list: if isSignedIn();
       allow create: if false;
       allow update: if false;
       allow delete: if false;
+    }
+
+    /**
+     * @description
+     *   Manages sponsor data. This data is public to read for the landing page,
+     *   but all write operations are restricted to authenticated admins.
+     * @path /sponsors/{sponsorId}
+     * @allow Any user can `(get)` or `(list)` sponsors.
+     * @allow An authenticated admin can `(create)`, `(update)`, `(delete)` a sponsor.
+     * @deny A non-admin user tries to `(create)` a sponsor.
+     */
+    match /sponsors/{sponsorId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     /**

@@ -1,12 +1,10 @@
 "use server";
 
 import { z } from "zod";
-import { registrationSchema, type RegistrationFormState } from "@/lib/schema";
+import { registrationSchema, sponsorSchema, type RegistrationFormState, type SponsorFormState } from "@/lib/schema";
 import { getFirestore } from 'firebase-admin/firestore';
 import { getFirebaseAdminApp } from '@/firebase/admin';
-import { CollectionReference, DocumentReference } from 'firebase/firestore';
-import { setDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { firestore } from "firebase-admin";
+import { revalidatePath } from "next/cache";
 
 // This is a simplified approach for the MVP. In a real-world scenario,
 // you would have a more robust role-based access control system.
@@ -53,5 +51,73 @@ export async function submitRegistrationForm(
       message: "An unexpected error occurred on the server. Please try again later.",
       success: false
     };
+  }
+}
+
+export async function addSponsor(data: z.infer<typeof sponsorSchema>): Promise<SponsorFormState> {
+  const validatedFields = sponsorSchema.safeParse(data);
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Validation failed.",
+      success: false,
+    };
+  }
+
+  try {
+    const adminApp = getFirebaseAdminApp();
+    const db = getFirestore(adminApp);
+    await db.collection("sponsors").add(validatedFields.data);
+
+    revalidatePath('/'); // Revalidate the home page to show the new sponsor
+    revalidatePath('/admin/sponsors'); // Revalidate the sponsors admin page
+
+    return { message: "Sponsor added successfully.", success: true };
+  } catch (error) {
+    console.error(error);
+    return { message: "Failed to add sponsor.", success: false };
+  }
+}
+
+export async function updateSponsor(id: string, data: z.infer<typeof sponsorSchema>): Promise<SponsorFormState> {
+  const validatedFields = sponsorSchema.safeParse(data);
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Validation failed.",
+      success: false,
+    };
+  }
+
+  try {
+    const adminApp = getFirebaseAdminApp();
+    const db = getFirestore(adminApp);
+    await db.collection("sponsors").doc(id).update(validatedFields.data);
+    
+    revalidatePath('/');
+    revalidatePath('/admin/sponsors');
+
+    return { message: "Sponsor updated successfully.", success: true };
+  } catch (error) {
+    console.error(error);
+    return { message: "Failed to update sponsor.", success: false };
+  }
+}
+
+export async function deleteSponsor(id: string): Promise<{ success: boolean, message: string }> {
+  try {
+    const adminApp = getFirebaseAdminApp();
+    const db = getFirestore(adminApp);
+    await db.collection("sponsors").doc(id).delete();
+
+    revalidatePath('/');
+    revalidatePath('/admin/sponsors');
+
+    return { success: true, message: "Sponsor deleted." };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: "Failed to delete sponsor." };
   }
 }
