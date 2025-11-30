@@ -12,7 +12,8 @@ export function getServiceAccount() {
     "type": "service_account",
     "project_id": firebaseConfig.projectId,
     "private_key_id": "YOUR_PRIVATE_KEY_ID_HERE",
-    "private_key": "YOUR_PRIVATE_KEY_HERE".replace(/\\n/g, '\n'),
+    // This MUST be read from process.env to correctly handle newline characters.
+    "private_key": process.env.FIREBASE_PRIVATE_KEY,
     "client_email": "YOUR_CLIENT_EMAIL_HERE",
     "client_id": "YOUR_CLIENT_ID_HERE",
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
@@ -25,8 +26,9 @@ export function getServiceAccount() {
   if (!serviceAccount.project_id) {
     throw new Error('Firebase service account "project_id" is not defined in environment variables.');
   }
-   if (serviceAccount.private_key === "YOUR_PRIVATE_KEY_HERE".replace(/\\n/g, '\n')) {
-    console.warn("\n\n⚠️  WARNING: Firebase Admin private key is not set. Please replace 'YOUR_PRIVATE_KEY_HERE' in src/firebase/service-account.ts with your actual private key.  ⚠️\n\n");
+   if (!serviceAccount.private_key) {
+    console.warn("\n\n⚠️  WARNING: Firebase Admin private key is not set. Please set FIREBASE_PRIVATE_KEY in your environment variables.  ⚠️\n\n");
+    throw new Error('Firebase service account "private_key" is not defined in environment variables.');
   }
 
 
