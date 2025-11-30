@@ -1,8 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import Image from 'next/image';
+import { useUser, useFirestore, useStorage, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Header from '@/components/landing/Header';
 import Footer from '@/components/landing/Footer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,7 +18,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { sponsorSchema } from "@/lib/schema";
 import { z } from "zod";
-import { Loader2, PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { Loader2, PlusCircle, Edit, Trash2, Upload } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
@@ -33,10 +35,14 @@ export default function AdminSponsorsPage() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const storage = useStorage();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
 
   const sponsorsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -59,19 +65,45 @@ export default function AdminSponsorsPage() {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
+  
+  useEffect(() => {
+      if (!dialogOpen) {
+          setEditingSponsor(null);
+          setImageFile(null);
+          setImagePreview(null);
+          form.reset({ name: "", description: "", imageUrl: "" });
+      }
+  }, [dialogOpen, form]);
 
   useEffect(() => {
     if (editingSponsor) {
       form.reset(editingSponsor);
-      setDialogOpen(true);
+      setImagePreview(editingSponsor.imageUrl);
+      setImageFile(null);
     } else {
       form.reset({ name: "", description: "", imageUrl: "" });
+      setImagePreview(null);
+      setImageFile(null);
     }
   }, [editingSponsor, form]);
+  
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+          setImageFile(file);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+              setImagePreview(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+          form.setValue('imageUrl', 'file-uploaded'); // Satisfy zod schema for file uploads
+      }
+  };
 
 
   const handleEdit = (sponsor: Sponsor) => {
     setEditingSponsor(sponsor);
+    setDialogOpen(true);
   };
 
   const handleAddNew = () => {
@@ -90,20 +122,56 @@ export default function AdminSponsorsPage() {
     }
   };
 
+  const uploadImage = async (): Promise<string | null> => {
+      if (!imageFile || !storage) return null;
+      const imageRef = storageRef(storage, `sponsors/${Date.now()}_${imageFile.name}`);
+      try {
+          const snapshot = await uploadBytes(imageRef, imageFile);
+          const downloadURL = await getDownloadURL(snapshot.ref);
+          return downloadURL;
+      } catch (e) {
+          console.error("Image upload failed:", e);
+          toast({ variant: "destructive", title: "Ошибка загрузки изображения" });
+          return null;
+      }
+  };
+
   const onSubmit = async (values: SponsorFormData) => {
     if (!firestore || !sponsorsQuery) return;
     setIsSubmitting(true);
+
+    let finalImageUrl = editingSponsor?.imageUrl || "";
+
+    if (imageFile) {
+        const uploadedUrl = await uploadImage();
+        if (uploadedUrl) {
+            finalImageUrl = uploadedUrl;
+        } else {
+            // Halt submission if image upload fails
+            setIsSubmitting(false);
+            return;
+        }
+    }
+
+    // Ensure imageUrl is not empty if it's a new sponsor with no image
+    if (!finalImageUrl) {
+        form.setError("imageUrl", { type: "manual", message: "Логотип обязателен" });
+        setIsSubmitting(false);
+        return;
+    }
+
+    const dataToSave = { ...values, imageUrl: finalImageUrl };
+
     try {
       if (editingSponsor) {
         const sponsorDoc = doc(firestore, "sponsors", editingSponsor.id);
-        await updateDoc(sponsorDoc, values);
+        await updateDoc(sponsorDoc, dataToSave);
         toast({ title: "Спонсор обновлен" });
       } else {
-        await addDoc(sponsorsQuery, values);
+        await addDoc(sponsorsQuery, dataToSave);
         toast({ title: "Спонсор добавлен" });
       }
       setDialogOpen(false);
-      setEditingSponsor(null);
     } catch (e) {
       console.error(e);
       toast({ variant: "destructive", title: "Произошла ошибка" });
@@ -219,9 +287,23 @@ export default function AdminSponsorsPage() {
                   )} />
                   <FormField control={form.control} name="imageUrl" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>URL логотипа</FormLabel>
-                      <FormControl><Input placeholder="https://example.com/logo.png" {...field} /></FormControl>
-                      <FormMessage />
+                        <FormLabel>Логотип</FormLabel>
+                        <FormControl>
+                            <div className="flex items-center gap-4">
+                                <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted/50">
+                                {imagePreview ? (
+                                    <Image src={imagePreview} alt="Предпросмотр" width={96} height={96} className="object-contain rounded-md"/>
+                                ) : (
+                                    <div className="text-center text-muted-foreground">
+                                        <Upload className="mx-auto h-6 w-6"/>
+                                        <span className="text-xs">Загрузите</span>
+                                    </div>
+                                )}
+                                </div>
+                                <Input id="picture" type="file" className="flex-1" onChange={handleFileChange} accept="image/png, image/jpeg, image/gif, image/webp" />
+                            </div>
+                        </FormControl>
+                        <FormMessage />
                     </FormItem>
                   )} />
                   <DialogFooter>
