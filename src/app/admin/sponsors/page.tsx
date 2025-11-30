@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useActionState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2, PlusCircle, Edit, Trash2, Upload, AlertCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type Sponsor = {
@@ -49,10 +49,10 @@ export default function AdminSponsorsPage() {
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  const [addState, addFormAction] = useFormState(addSponsor, initialState);
-  const [updateState, updateFormAction] = useFormState(updateSponsor, initialState);
+  const [addState, addFormAction] = useActionState(addSponsor, initialState);
+  const [updateState, updateFormAction] = useActionState(updateSponsor, initialState);
 
-  const formRef = React.useRef<HTMLFormElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const sponsorsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
