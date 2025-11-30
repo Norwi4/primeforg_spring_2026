@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, useMemo, ChangeEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useStorage } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import Header from '@/components/landing/Header';
 import Footer from '@/components/landing/Footer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,10 +17,10 @@ import { Label } from '@/components/ui/label';
 import { Loader2, PlusCircle, Edit, Trash2, AlertCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { sponsorSchema, SponsorPayload } from '@/lib/schema';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type Sponsor = {
   id: string;
@@ -56,7 +55,7 @@ export default function AdminSponsorsPage() {
 
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!firestore || !user) return;
+    if (!firestore) return;
     
     setIsSubmitting(true);
     setFormError(null);
@@ -77,27 +76,27 @@ export default function AdminSponsorsPage() {
       return;
     }
     
-    if (editingSponsor) {
-        const sponsorDocRef = doc(firestore, 'sponsors', editingSponsor.id);
-        updateDoc(sponsorDocRef, validatedFields.data).catch(err => {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: sponsorDocRef.path,
-                operation: 'update',
-                requestResourceData: validatedFields.data,
-            }));
-        });
-        toast({ title: "Sponsor updated successfully!" });
-    } else {
-        const sponsorsCollection = collection(firestore, 'sponsors');
-        addDoc(sponsorsCollection, validatedFields.data).catch(err => {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: sponsorsCollection.path,
-                operation: 'create',
-                requestResourceData: validatedFields.data,
-            }));
-        });
-        toast({ title: "Sponsor added successfully!" });
+    try {
+        if (editingSponsor) {
+            const sponsorDocRef = doc(firestore, 'sponsors', editingSponsor.id);
+            await updateDoc(sponsorDocRef, validatedFields.data)
+            toast({ title: "Sponsor updated successfully!" });
+        } else {
+            const sponsorsCollection = collection(firestore, 'sponsors');
+            await addDoc(sponsorsCollection, validatedFields.data)
+            toast({ title: "Sponsor added successfully!" });
+        }
+    } catch (err: any) {
+        const operation = editingSponsor ? 'update' : 'create';
+        const docRef = editingSponsor ? doc(firestore, 'sponsors', editingSponsor.id) : collection(firestore, 'sponsors');
+        
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: docRef.path,
+            operation: operation,
+            requestResourceData: validatedFields.data,
+        }));
     }
+
 
     setIsSubmitting(false);
     setDialogOpen(false);
@@ -118,13 +117,15 @@ export default function AdminSponsorsPage() {
   const handleDelete = async (id: string) => {
     if (!firestore) return;
     const sponsorDocRef = doc(firestore, "sponsors", id);
-    deleteDoc(sponsorDocRef).catch(err => {
+    try {
+        await deleteDoc(sponsorDocRef);
+        toast({ title: "Спонсор удален" });
+    } catch(err) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: sponsorDocRef.path,
             operation: 'delete',
         }));
-    });
-    toast({ title: "Спонсор удален" });
+    }
   };
   
   if (isUserLoading || !user) {
