@@ -1,6 +1,13 @@
 // This file is gitignored. You can obtain the service account key from the
 // Firebase console.
-export const serviceAccount = {
+
+/**
+ * Returns the service account object.
+ * This function reads from process.env at runtime, ensuring that the variables
+ * are available in the serverless function environment.
+ */
+export function getServiceAccount() {
+  const serviceAccount = {
     "type": process.env.FIREBASE_TYPE,
     "project_id": process.env.FIREBASE_PROJECT_ID,
     "private_key_id": process.env.FIREBASE_PRIVATE_KEY_ID,
@@ -13,4 +20,10 @@ export const serviceAccount = {
     "client_x509_cert_url": process.env.FIREBASE_CLIENT_X509_CERT_URL,
     "universe_domain": process.env.FIREBASE_UNIVERSE_DOMAIN,
   } as const;
-  
+
+  if (!serviceAccount.project_id) {
+    throw new Error('Firebase service account "project_id" is not defined in environment variables.');
+  }
+
+  return serviceAccount;
+}
