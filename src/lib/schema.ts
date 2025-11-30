@@ -38,8 +38,18 @@ export type LoginFormState = {
 export const sponsorSchema = z.object({
   name: z.string().min(2, { message: "Название спонсора обязательно." }),
   description: z.string().min(10, { message: "Описание должно содержать не менее 10 символов." }),
-  imageUrl: z.string().url({ message: "Неверный формат URL изображения." }),
+  imageUrl: z.string().min(1, { message: "Логотип обязателен." }),
+}).refine(data => {
+    // If imageUrl is not a placeholder for a file upload, it must be a valid URL.
+    if (data.imageUrl !== 'file-uploaded') {
+        return z.string().url().safeParse(data.imageUrl).success;
+    }
+    return true;
+}, {
+    message: "Неверный формат URL изображения.",
+    path: ["imageUrl"],
 });
+
 
 export type SponsorFormState = {
   errors?: {
