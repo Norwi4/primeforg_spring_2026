@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { registrationSchema, sponsorSchema, type RegistrationFormState, type SponsorFormState } from "@/lib/schema";
 import { getFirestore } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 import { getFirebaseAdminApp } from '@/firebase/admin';
 import { revalidatePath } from "next/cache";
 
@@ -54,47 +55,100 @@ export async function submitRegistrationForm(
   }
 }
 
-export async function addSponsor(data: z.infer<typeof sponsorSchema>): Promise<SponsorFormState> {
-  const validatedFields = sponsorSchema.safeParse(data);
-
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: "Validation failed.",
-      success: false,
-    };
-  }
-
-  try {
+async function uploadImageToStorage(image: File): Promise<string> {
     const adminApp = getFirebaseAdminApp();
-    const db = getFirestore(adminApp);
-    await db.collection("sponsors").add(validatedFields.data);
+    const bucket = getStorage(adminApp).bucket();
+    const filename = `sponsors/${Date.now()}_${image.name}`;
+    const fileBuffer = Buffer.from(await image.arrayBuffer());
 
-    revalidatePath('/'); // Revalidate the home page to show the new sponsor
-    revalidatePath('/admin/sponsors'); // Revalidate the sponsors admin page
+    const fileUpload = bucket.file(filename);
 
-    return { message: "Sponsor added successfully.", success: true };
-  } catch (error) {
-    console.error(error);
-    return { message: "Failed to add sponsor.", success: false };
-  }
+    await fileUpload.save(fileBuffer, {
+        metadata: {
+            contentType: image.type,
+        },
+    });
+
+    return fileUpload.publicUrl();
 }
 
-export async function updateSponsor(id: string, data: z.infer<typeof sponsorSchema>): Promise<SponsorFormState> {
-  const validatedFields = sponsorSchema.safeParse(data);
+export async function addSponsor(prevState: SponsorFormState, formData: FormData): Promise<SponsorFormState> {
+    const name = formData.get('name') as string;
+    const description = formData.get('description') as string;
+    const image = formData.get('image') as File;
+
+    const sponsorData = { name, description };
+    const validatedFields = sponsorSchema.safeParse(sponsorData);
+
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.issues,
+            message: "Validation failed.",
+            success: false,
+        };
+    }
+    
+    if (!image || image.size === 0) {
+        return {
+            errors: [{ path: ['imageUrl'], message: 'Логотип обязателен.' }],
+            message: "Validation failed.",
+            success: false,
+        };
+    }
+
+    try {
+        const imageUrl = await uploadImageToStorage(image);
+        
+        const adminApp = getFirebaseAdminApp();
+        const db = getFirestore(adminApp);
+        await db.collection("sponsors").add({ ...validatedFields.data, imageUrl });
+
+        revalidatePath('/');
+        revalidatePath('/admin/sponsors');
+
+        return { message: "Sponsor added successfully.", success: true };
+    } catch (error) {
+        console.error(error);
+        return { message: "Failed to add sponsor.", success: false };
+    }
+}
+
+
+export async function updateSponsor(prevState: SponsorFormState, formData: FormData): Promise<SponsorFormState> {
+  const id = formData.get('id') as string;
+  const name = formData.get('name') as string;
+  const description = formData.get('description') as string;
+  const image = formData.get('image') as File;
+  const existingImageUrl = formData.get('existingImageUrl') as string;
+
+  const sponsorData = { name, description };
+  const validatedFields = sponsorSchema.safeParse(sponsorData);
 
   if (!validatedFields.success) {
     return {
-      errors: validatedFields.error.flatten().fieldErrors,
+      errors: validatedFields.error.issues,
       message: "Validation failed.",
       success: false,
     };
   }
-
+  
+  let imageUrl = existingImageUrl;
   try {
+    if (image && image.size > 0) {
+      imageUrl = await uploadImageToStorage(image);
+    }
+
+    if (!imageUrl) {
+       return {
+            errors: [{ path: ['imageUrl'], message: 'Логотип обязателен.' }],
+            message: "Validation failed.",
+            success: false,
+        };
+    }
+
     const adminApp = getFirebaseAdminApp();
     const db = getFirestore(adminApp);
-    await db.collection("sponsors").doc(id).update(validatedFields.data);
+    await db.collection("sponsors").doc(id).update({ ...validatedFields.data, imageUrl });
     
     revalidatePath('/');
     revalidatePath('/admin/sponsors');

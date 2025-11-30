@@ -1,26 +1,24 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useUser, useFirestore, useStorage, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, deleteDoc, doc } from 'firebase/firestore';
+import { addSponsor, updateSponsor } from '@/app/actions';
 import Header from '@/components/landing/Header';
 import Footer from '@/components/landing/Footer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { sponsorSchema } from "@/lib/schema";
-import { z } from "zod";
-import { Loader2, PlusCircle, Edit, Trash2, Upload } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Loader2, PlusCircle, Edit, Trash2, Upload, AlertCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useFormState, useFormStatus } from 'react-dom';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type Sponsor = {
   id: string;
@@ -29,20 +27,32 @@ type Sponsor = {
   imageUrl: string;
 };
 
-type SponsorFormData = z.infer<typeof sponsorSchema>;
+const initialState = { message: '', success: false, errors: [] };
+
+function SubmitButton({ isEditing }: { isEditing: boolean }) {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending}>
+            {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isEditing ? 'Сохранить изменения' : 'Добавить'}
+        </Button>
+    );
+}
 
 export default function AdminSponsorsPage() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
-  const storage = useStorage();
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  const [addState, addFormAction] = useFormState(addSponsor, initialState);
+  const [updateState, updateFormAction] = useFormState(updateSponsor, initialState);
+
+  const formRef = React.useRef<HTMLFormElement>(null);
 
   const sponsorsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -51,55 +61,48 @@ export default function AdminSponsorsPage() {
 
   const { data: sponsors, isLoading, error } = useCollection<Sponsor>(sponsorsQuery);
 
-  const form = useForm<SponsorFormData>({
-    resolver: zodResolver(sponsorSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      imageUrl: "",
-    },
-  });
-
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
-  
+
   useEffect(() => {
-      if (!dialogOpen) {
-          setEditingSponsor(null);
-          setImageFile(null);
-          setImagePreview(null);
-          form.reset({ name: "", description: "", imageUrl: "" });
-      }
-  }, [dialogOpen, form]);
+    if (addState.success || updateState.success) {
+      toast({ title: addState.success ? "Спонсор добавлен" : "Спонсор обновлен" });
+      setDialogOpen(false);
+    }
+  }, [addState, updateState, toast]);
+
+  useEffect(() => {
+    if (!dialogOpen) {
+      setEditingSponsor(null);
+      setImagePreview(null);
+      formRef.current?.reset();
+    }
+  }, [dialogOpen]);
 
   useEffect(() => {
     if (editingSponsor) {
-      form.reset(editingSponsor);
-      setImagePreview(editingSponsor.imageUrl);
-      setImageFile(null);
+        setImagePreview(editingSponsor.imageUrl);
     } else {
-      form.reset({ name: "", description: "", imageUrl: "" });
-      setImagePreview(null);
-      setImageFile(null);
+        setImagePreview(null);
     }
-  }, [editingSponsor, form]);
+  }, [editingSponsor]);
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
-          setImageFile(file);
-          const reader = new FileReader();
-          reader.onloadend = () => {
-              setImagePreview(reader.result as string);
-          };
-          reader.readAsDataURL(file);
-          form.setValue('imageUrl', 'file-uploaded'); // Satisfy zod schema for file uploads
-      }
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // If file is cleared, revert to original image if editing
+      setImagePreview(editingSponsor?.imageUrl || null);
+    }
   };
-
 
   const handleEdit = (sponsor: Sponsor) => {
     setEditingSponsor(sponsor);
@@ -121,64 +124,8 @@ export default function AdminSponsorsPage() {
       toast({ variant: "destructive", title: "Ошибка при удалении спонсора" });
     }
   };
-
-  const uploadImage = async (): Promise<string | null> => {
-      if (!imageFile || !storage) return null;
-      const imageRef = storageRef(storage, `sponsors/${Date.now()}_${imageFile.name}`);
-      try {
-          const snapshot = await uploadBytes(imageRef, imageFile);
-          const downloadURL = await getDownloadURL(snapshot.ref);
-          return downloadURL;
-      } catch (e) {
-          console.error("Image upload failed:", e);
-          toast({ variant: "destructive", title: "Ошибка загрузки изображения" });
-          return null;
-      }
-  };
-
-  const onSubmit = async (values: SponsorFormData) => {
-    if (!firestore || !sponsorsQuery) return;
-    setIsSubmitting(true);
-
-    let finalImageUrl = editingSponsor?.imageUrl || "";
-
-    if (imageFile) {
-        const uploadedUrl = await uploadImage();
-        if (uploadedUrl) {
-            finalImageUrl = uploadedUrl;
-        } else {
-            // Halt submission if image upload fails
-            setIsSubmitting(false);
-            return;
-        }
-    }
-
-    // Ensure imageUrl is not empty if it's a new sponsor with no image
-    if (!finalImageUrl) {
-        form.setError("imageUrl", { type: "manual", message: "Логотип обязателен" });
-        setIsSubmitting(false);
-        return;
-    }
-
-    const dataToSave = { ...values, imageUrl: finalImageUrl };
-
-    try {
-      if (editingSponsor) {
-        const sponsorDoc = doc(firestore, "sponsors", editingSponsor.id);
-        await updateDoc(sponsorDoc, dataToSave);
-        toast({ title: "Спонсор обновлен" });
-      } else {
-        await addDoc(sponsorsQuery, dataToSave);
-        toast({ title: "Спонсор добавлен" });
-      }
-      setDialogOpen(false);
-    } catch (e) {
-      console.error(e);
-      toast({ variant: "destructive", title: "Произошла ошибка" });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  
+  const currentFormState = editingSponsor ? updateState : addState;
 
   if (isUserLoading || !user) {
     return (
@@ -269,56 +216,56 @@ export default function AdminSponsorsPage() {
               <DialogHeader>
                 <DialogTitle>{editingSponsor ? 'Редактировать спонсора' : 'Добавить спонсора'}</DialogTitle>
               </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField control={form.control} name="name" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Название</FormLabel>
-                      <FormControl><Input placeholder="Название спонсора" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="description" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Описание</FormLabel>
-                      <FormControl><Textarea placeholder="Краткое описание спонсора" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="imageUrl" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Логотип</FormLabel>
-                        <FormControl>
-                            <div className="flex items-center gap-4">
-                                <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted/50">
-                                {imagePreview ? (
-                                    <Image src={imagePreview} alt="Предпросмотр" width={96} height={96} className="object-contain rounded-md"/>
-                                ) : (
-                                    <div className="text-center text-muted-foreground">
-                                        <Upload className="mx-auto h-6 w-6"/>
-                                        <span className="text-xs">Загрузите</span>
-                                    </div>
-                                )}
+                <form ref={formRef} action={editingSponsor ? updateFormAction : addFormAction} className="space-y-4">
+                     {editingSponsor && <input type="hidden" name="id" value={editingSponsor.id} />}
+                     {editingSponsor && <input type="hidden" name="existingImageUrl" value={editingSponsor.imageUrl} />}
+
+                    {currentFormState.message && !currentFormState.success && (
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Ошибка</AlertTitle>
+                            <AlertDescription>{currentFormState.message}</AlertDescription>
+                        </Alert>
+                    )}
+
+                    <div className="space-y-2">
+                        <Label htmlFor="name">Название</Label>
+                        <Input id="name" name="name" placeholder="Название спонсора" defaultValue={editingSponsor?.name} required />
+                        {currentFormState.errors?.find(e => e.path[0] === 'name') && <p className="text-sm font-medium text-destructive">{currentFormState.errors.find(e => e.path[0] === 'name')?.message}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="description">Описание</Label>
+                        <Textarea id="description" name="description" placeholder="Краткое описание спонсора" defaultValue={editingSponsor?.description} required />
+                         {currentFormState.errors?.find(e => e.path[0] === 'description') && <p className="text-sm font-medium text-destructive">{currentFormState.errors.find(e => e.path[0] === 'description')?.message}</p>}
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <Label>Логотип</Label>
+                        <div className="flex items-center gap-4">
+                            <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted/50">
+                            {imagePreview ? (
+                                <Image src={imagePreview} alt="Предпросмотр" width={96} height={96} className="object-contain rounded-md"/>
+                            ) : (
+                                <div className="text-center text-muted-foreground">
+                                    <Upload className="mx-auto h-6 w-6"/>
+                                    <span className="text-xs">Загрузите</span>
                                 </div>
-                                <Input id="picture" type="file" className="flex-1" onChange={handleFileChange} accept="image/png, image/jpeg, image/gif, image/webp" />
+                            )}
                             </div>
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                  )} />
+                            <Input id="image" name="image" type="file" className="flex-1" onChange={handleFileChange} accept="image/png, image/jpeg, image/gif, image/webp" />
+                        </div>
+                        {currentFormState.errors?.find(e => e.path[0] === 'imageUrl') && <p className="text-sm font-medium text-destructive">{currentFormState.errors.find(e => e.path[0] === 'imageUrl')?.message}</p>}
+                    </div>
+
                   <DialogFooter>
                     <DialogClose asChild>
                       <Button type="button" variant="secondary">Отмена</Button>
                     </DialogClose>
-                    <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      {editingSponsor ? 'Сохранить изменения' : 'Добавить'}
-                    </Button>
+                    <SubmitButton isEditing={!!editingSponsor} />
                   </DialogFooter>
                 </form>
-              </Form>
             </DialogContent>
-
           </Dialog>
         </div>
       </main>
