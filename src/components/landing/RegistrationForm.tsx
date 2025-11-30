@@ -17,14 +17,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { submitRegistrationForm } from "@/app/actions";
+import { submitRegistration } from "@/app/registration/actions";
 import { registrationSchema, type RegistrationFormState } from "@/lib/schema";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useFirestore } from "@/firebase";
 
 export default function RegistrationForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const firestore = useFirestore();
 
   const form = useForm<z.infer<typeof registrationSchema>>({
     resolver: zodResolver(registrationSchema),
@@ -37,7 +39,7 @@ export default function RegistrationForm() {
 
   async function onSubmit(values: z.infer<typeof registrationSchema>) {
     setIsSubmitting(true);
-    const result: RegistrationFormState = await submitRegistrationForm(values);
+    const result: RegistrationFormState = await submitRegistration(firestore, values);
     setIsSubmitting(false);
 
     if (result.success) {

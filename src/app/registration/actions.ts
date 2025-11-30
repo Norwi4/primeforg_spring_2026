@@ -1,14 +1,13 @@
 
-"use server";
+'use client';
 import { z } from "zod";
 import { registrationSchema, type RegistrationFormState } from "@/lib/schema";
+import { addDoc, collection, Firestore } from "firebase/firestore";
 
-// This is a simplified approach for the MVP. In a real-world scenario,
-// you would have a more robust role-based access control system.
 const ADMIN_EMAIL = "admin@primeforg.gg";
 
-
-export async function submitRegistrationForm(
+export async function submitRegistration(
+  db: Firestore,
   data: z.infer<typeof registrationSchema>
 ): Promise<RegistrationFormState> {
   const validatedFields = registrationSchema.safeParse(data);
@@ -21,19 +20,28 @@ export async function submitRegistrationForm(
     };
   }
   
-  // Simplified admin check for MVP
   if (validatedFields.data.email === ADMIN_EMAIL) {
     return { 
       message: "Admin user detected. No team registered.",
-      success: true, // Return success to not show an error on the form
+      success: true,
     };
   }
+
+  try {
+    await addDoc(collection(db, "teams"), {
+      ...validatedFields.data,
+      registrationDate: new Date().toISOString(),
+    });
     
-    // This part of the function will no longer be reached by regular users,
-    // as their form submission is handled on the client side.
-    // This remains as a fallback/example.
     return { 
       message: `Команда "${validatedFields.data.teamName}" успешно зарегистрирована! Мы свяжемся с вами по email.`,
       success: true
     };
+  } catch (e: any) {
+    console.error("Failed to process registration form:", e);
+    return { 
+      message: "An unexpected error occurred. Please try again later.",
+      success: false
+    };
+  }
 }
