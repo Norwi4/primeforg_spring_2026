@@ -63,7 +63,8 @@ service cloud.firestore {
     match /teams/{teamId} {
       allow get: if isSignedIn();
       allow list: if isSignedIn();
-      allow write: if false;
+      allow create: if true;
+      allow update, delete: if false;
     }
 
     /**
