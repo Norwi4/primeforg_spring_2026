@@ -1,6 +1,7 @@
+
 "use server";
 import { z } from "zod";
-import { registrationSchema, sponsorSchema, type RegistrationFormState, type SponsorFormState } from "@/lib/schema";
+import { registrationSchema, sponsorSchema, type RegistrationFormState, type SponsorFormState, type SponsorPayload } from "@/lib/schema";
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { getFirebaseAdminApp } from '@/firebase/admin';
@@ -54,17 +55,17 @@ export async function submitRegistrationForm(
   }
 }
 
-async function uploadImageToStorage(image: File): Promise<string> {
+async function uploadImageToStorage(base64: string, contentType: string, filename: string): Promise<string> {
     const adminApp = getFirebaseAdminApp();
     const bucket = getStorage(adminApp).bucket();
-    const filename = `sponsors/${Date.now()}_${image.name}`;
-    const fileBuffer = Buffer.from(await image.arrayBuffer());
-
-    const fileUpload = bucket.file(filename);
+    const fileBuffer = Buffer.from(base64.split(',')[1], 'base64');
+    
+    const filePath = `sponsors/${Date.now()}_${filename}`;
+    const fileUpload = bucket.file(filePath);
 
     await fileUpload.save(fileBuffer, {
         metadata: {
-            contentType: image.type,
+            contentType: contentType,
         },
     });
 
@@ -74,13 +75,10 @@ async function uploadImageToStorage(image: File): Promise<string> {
     return fileUpload.publicUrl();
 }
 
-export async function addSponsor(prevState: SponsorFormState, formData: FormData): Promise<SponsorFormState> {
-    const name = formData.get('name') as string;
-    const description = formData.get('description') as string;
-    const image = formData.get('image') as File;
-
-    const sponsorData = { name, description };
-    const validatedFields = sponsorSchema.safeParse(sponsorData);
+export async function addSponsor(prevState: SponsorFormState, payload: SponsorPayload): Promise<SponsorFormState> {
+    const { name, description, image } = payload;
+    
+    const validatedFields = sponsorSchema.safeParse({ name, description });
 
     if (!validatedFields.success) {
         return {
@@ -90,7 +88,7 @@ export async function addSponsor(prevState: SponsorFormState, formData: FormData
         };
     }
     
-    if (!image || image.size === 0) {
+    if (!image) {
         return {
             errors: [{ path: ['imageUrl'], message: 'Логотип обязателен.' }],
             message: "Validation failed.",
@@ -99,7 +97,7 @@ export async function addSponsor(prevState: SponsorFormState, formData: FormData
     }
 
     try {
-        const imageUrl = await uploadImageToStorage(image);
+        const imageUrl = await uploadImageToStorage(image.base64, image.type, name);
         
         const adminApp = getFirebaseAdminApp();
         const db = getFirestore(adminApp);
@@ -116,15 +114,10 @@ export async function addSponsor(prevState: SponsorFormState, formData: FormData
 }
 
 
-export async function updateSponsor(prevState: SponsorFormState, formData: FormData): Promise<SponsorFormState> {
-  const id = formData.get('id') as string;
-  const name = formData.get('name') as string;
-  const description = formData.get('description') as string;
-  const image = formData.get('image') as File;
-  const existingImageUrl = formData.get('existingImageUrl') as string;
+export async function updateSponsor(prevState: SponsorFormState, payload: SponsorPayload): Promise<SponsorFormState> {
+  const { id, name, description, image, existingImageUrl } = payload;
 
-  const sponsorData = { name, description };
-  const validatedFields = sponsorSchema.safeParse(sponsorData);
+  const validatedFields = sponsorSchema.safeParse({ name, description });
 
   if (!validatedFields.success) {
     return {
@@ -136,8 +129,8 @@ export async function updateSponsor(prevState: SponsorFormState, formData: FormD
   
   let imageUrl = existingImageUrl;
   try {
-    if (image && image.size > 0) {
-      imageUrl = await uploadImageToStorage(image);
+    if (image) {
+      imageUrl = await uploadImageToStorage(image.base64, image.type, name);
     }
 
     if (!imageUrl) {
@@ -150,6 +143,7 @@ export async function updateSponsor(prevState: SponsorFormState, formData: FormD
 
     const adminApp = getFirebaseAdminApp();
     const db = getFirestore(adminApp);
+    if (!id) throw new Error("Sponsor ID is missing for update.");
     await db.collection("sponsors").doc(id).update({ ...validatedFields.data, imageUrl });
     
     revalidatePath('/');
@@ -177,3 +171,5 @@ export async function deleteSponsor(id: string): Promise<{ success: boolean, mes
     return { success: false, message: `Failed to delete sponsor: ${error.message}` };
   }
 }
+
+    

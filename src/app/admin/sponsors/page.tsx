@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useFormStatus } from 'react-dom';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import type { SponsorFormState, SponsorPayload } from '@/lib/schema';
 
 type Sponsor = {
   id: string;
@@ -27,7 +28,7 @@ type Sponsor = {
   imageUrl: string;
 };
 
-const initialState = { message: '', success: false, errors: [] };
+const initialState: SponsorFormState = { message: '', success: false, errors: [] };
 
 function SubmitButton({ isEditing }: { isEditing: boolean }) {
     const { pending } = useFormStatus();
@@ -39,6 +40,13 @@ function SubmitButton({ isEditing }: { isEditing: boolean }) {
     );
 }
 
+const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+});
+
 export default function AdminSponsorsPage() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
@@ -48,6 +56,7 @@ export default function AdminSponsorsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [addState, addFormAction] = useActionState(addSponsor, initialState);
   const [updateState, updateFormAction] = useActionState(updateSponsor, initialState);
@@ -68,16 +77,18 @@ export default function AdminSponsorsPage() {
   }, [user, isUserLoading, router]);
 
   useEffect(() => {
-    if (addState.success || updateState.success) {
-      toast({ title: addState.success ? "Спонсор добавлен" : "Спонсор обновлен" });
+    const state = editingSponsor ? updateState : addState;
+    if (state.success) {
+      toast({ title: editingSponsor ? "Спонсор обновлен" : "Спонсор добавлен" });
       setDialogOpen(false);
     }
-  }, [addState, updateState, toast]);
+  }, [addState, updateState, toast, editingSponsor]);
 
   useEffect(() => {
     if (!dialogOpen) {
       setEditingSponsor(null);
       setImagePreview(null);
+      setSelectedFile(null);
       formRef.current?.reset();
     }
   }, [dialogOpen]);
@@ -93,14 +104,43 @@ export default function AdminSponsorsPage() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     } else {
-      // If file is cleared, revert to original image if editing
+      setSelectedFile(null);
       setImagePreview(editingSponsor?.imageUrl || null);
+    }
+  };
+
+  const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const name = formData.get('name') as string;
+    const description = formData.get('description') as string;
+    
+    let imagePayload: { base64: string; type: string; } | undefined = undefined;
+
+    if (selectedFile) {
+        const base64 = await toBase64(selectedFile);
+        imagePayload = { base64, type: selectedFile.type };
+    }
+
+    const payload: SponsorPayload = {
+      id: editingSponsor?.id,
+      name,
+      description,
+      image: imagePayload,
+      existingImageUrl: editingSponsor?.imageUrl,
+    };
+
+    if (editingSponsor) {
+      updateFormAction(payload);
+    } else {
+      addFormAction(payload);
     }
   };
 
@@ -216,10 +256,7 @@ export default function AdminSponsorsPage() {
               <DialogHeader>
                 <DialogTitle>{editingSponsor ? 'Редактировать спонсора' : 'Добавить спонсора'}</DialogTitle>
               </DialogHeader>
-                <form ref={formRef} action={editingSponsor ? updateFormAction : addFormAction} className="space-y-4">
-                     {editingSponsor && <input type="hidden" name="id" value={editingSponsor.id} />}
-                     {editingSponsor && <input type="hidden" name="existingImageUrl" value={editingSponsor.imageUrl} />}
-
+                <form ref={formRef} onSubmit={handleFormSubmit} className="space-y-4">
                     {currentFormState.message && !currentFormState.success && (
                         <Alert variant="destructive">
                             <AlertCircle className="h-4 w-4" />
@@ -273,3 +310,5 @@ export default function AdminSponsorsPage() {
     </div>
   );
 }
+
+    
