@@ -1,12 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { Twitter, Linkedin, Facebook, Gamepad2 } from "lucide-react";
+import { Gamepad2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const TournamentIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <Gamepad2 {...props} />
 );
+
+const TelegramIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M22 2L11 13" />
+    <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+  </svg>
+);
+
 
 export default function Footer() {
   const [currentYear, setCurrentYear] = useState<number | null>(null);
@@ -27,14 +44,8 @@ export default function Footer() {
             © {currentYear ? currentYear : new Date().getFullYear()} PrimeForg. Все права защищены.
           </p>
           <div className="flex items-center gap-4">
-            <Link href="#" aria-label="Twitter" className="text-muted-foreground transition-colors hover:text-foreground" prefetch={false}>
-              <Twitter className="h-5 w-5" />
-            </Link>
-            <Link href="#" aria-label="LinkedIn" className="text-muted-foreground transition-colors hover:text-foreground" prefetch={false}>
-              <Linkedin className="h-5 w-5" />
-            </Link>
-            <Link href="#" aria-label="Facebook" className="text-muted-foreground transition-colors hover:text-foreground" prefetch={false}>
-              <Facebook className="h-5 w-5" />
+            <Link href="https://t.me/primeforg" aria-label="Telegram" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground" prefetch={false}>
+              <TelegramIcon className="h-5 w-5" />
             </Link>
           </div>
         </div>
