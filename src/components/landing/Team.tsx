@@ -1,5 +1,9 @@
-{
-  "placeholderImages": [
+// This file is intended to be a placeholder or data source.
+// To resolve the build error, it's being converted into a valid TSX component.
+
+import React from 'react';
+
+const placeholderImages = [
     {
       "id": "hero-background",
       "description": "Dota 2 tournament background",
@@ -42,5 +46,8 @@
       "imageUrl": "https://picsum.photos/seed/sponsor6/200/100",
       "imageHint": "logo brand"
     }
-  ]
+  ];
+
+export default function Team() {
+    return null;
 }
