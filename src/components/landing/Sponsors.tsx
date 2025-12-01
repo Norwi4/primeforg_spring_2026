@@ -1,16 +1,24 @@
 'use client';
 import Image from "next/image";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { sponsorTiers } from "@/lib/schema";
 
 type Sponsor = {
   id: string;
-  name: string;
-  description: string;
   imageUrl: string;
+  tier: typeof sponsorTiers[number];
 }
+
+const tierOrder: Record<typeof sponsorTiers[number], number> = {
+  "Титульный партнер": 1,
+  "Генеральный партнер": 2,
+  "Ведущий партнер": 3,
+  "Партнер": 4,
+};
 
 export default function Sponsors() {
   const firestore = useFirestore();
@@ -20,6 +28,10 @@ export default function Sponsors() {
   }, [firestore]);
 
   const { data: sponsors, isLoading, error } = useCollection<Sponsor>(sponsorsQuery);
+
+  const sortedSponsors = useMemoFirebase(() => {
+    return sponsors?.sort((a, b) => tierOrder[a.tier] - tierOrder[b.tier]);
+  }, [sponsors]);
 
   return (
     <section id="sponsors" className="w-full py-12 md:py-24 lg:py-32">
@@ -38,24 +50,22 @@ export default function Sponsors() {
         <div className="mt-12">
           {isLoading && <div className="flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}
           {error && <p className="text-destructive text-center">Не удалось загрузить спонсоров.</p>}
-          {sponsors && (
+          {sortedSponsors && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {sponsors.map((sponsor) => (
-                <Card key={sponsor.id} className="bg-background/40 border-border/60 hover:border-primary/80 transition-all duration-300 flex flex-col group text-center items-center">
-                  <CardHeader className="pb-4">
-                    <div className="flex justify-center grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300 p-4 rounded-lg">
+              {sortedSponsors.map((sponsor) => (
+                <Card key={sponsor.id} className="bg-background/40 border-border/60 hover:border-primary/80 transition-all duration-300 flex flex-col group text-center items-center overflow-hidden relative">
+                   <Badge variant={sponsor.tier === "Титульный партнер" || sponsor.tier === "Генеральный партнер" ? "default" : "secondary"} className="absolute top-2 left-2 z-10">
+                    {sponsor.tier}
+                  </Badge>
+                  <CardContent className="flex items-center justify-center p-6 h-48 w-full">
+                    <div className="relative h-full w-full grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300">
                       <Image
                         src={sponsor.imageUrl}
-                        alt={`${sponsor.name} Logo`}
-                        width={158}
-                        height={79}
-                        className="aspect-[2/1] object-contain"
+                        alt={`Логотип спонсора`}
+                        fill
+                        className="object-contain"
                       />
                     </div>
-                    <CardTitle className="font-headline text-xl font-bold text-primary-foreground group-hover:text-primary transition-colors">{sponsor.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">{sponsor.description}</p>
                   </CardContent>
                 </Card>
               ))}

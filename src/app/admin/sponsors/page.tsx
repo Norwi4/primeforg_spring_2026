@@ -12,21 +12,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from '@/components/ui/label';
 import { Loader2, PlusCircle, Edit, Trash2, AlertCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { sponsorSchema, SponsorPayload } from '@/lib/schema';
+import { sponsorSchema, SponsorPayload, sponsorTiers } from '@/lib/schema';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type Sponsor = {
   id: string;
-  name: string;
-  description: string;
   imageUrl: string;
+  tier: typeof sponsorTiers[number];
 };
 
 export default function AdminSponsorsPage() {
@@ -62,9 +61,8 @@ export default function AdminSponsorsPage() {
 
     const formData = new FormData(event.currentTarget);
     const payload: SponsorPayload = {
-      name: formData.get('name') as string,
-      description: formData.get('description') as string,
       imageUrl: formData.get('imageUrl') as string,
+      tier: formData.get('tier') as typeof sponsorTiers[number],
     };
     
     const validatedFields = sponsorSchema.safeParse(payload);
@@ -79,22 +77,28 @@ export default function AdminSponsorsPage() {
     try {
         if (editingSponsor) {
             const sponsorDocRef = doc(firestore, 'sponsors', editingSponsor.id);
-            await updateDoc(sponsorDocRef, validatedFields.data)
-            toast({ title: "Sponsor updated successfully!" });
+            updateDoc(sponsorDocRef, validatedFields.data).catch(err => {
+              errorEmitter.emit('permission-error', new FirestorePermissionError({
+                  path: sponsorDocRef.path,
+                  operation: 'update',
+                  requestResourceData: validatedFields.data,
+              }));
+            });
+            toast({ title: "Спонсор успешно обновлен!" });
         } else {
             const sponsorsCollection = collection(firestore, 'sponsors');
-            await addDoc(sponsorsCollection, validatedFields.data)
-            toast({ title: "Sponsor added successfully!" });
+            addDoc(sponsorsCollection, validatedFields.data).catch(err => {
+                errorEmitter.emit('permission-error', new FirestorePermissionError({
+                    path: sponsorsCollection.path,
+                    operation: 'create',
+                    requestResourceData: validatedFields.data,
+                }));
+            });
+            toast({ title: "Спонсор успешно добавлен!" });
         }
     } catch (err: any) {
-        const operation = editingSponsor ? 'update' : 'create';
-        const docRef = editingSponsor ? doc(firestore, 'sponsors', editingSponsor.id) : collection(firestore, 'sponsors');
-        
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: docRef.path,
-            operation: operation,
-            requestResourceData: validatedFields.data,
-        }));
+        // Fallback for unexpected errors, though .catch() should handle permission errors.
+        setFormError(err.message || 'Произошла непредвиденная ошибка.');
     }
 
 
@@ -164,8 +168,7 @@ export default function AdminSponsorsPage() {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Логотип</TableHead>
-                          <TableHead>Название</TableHead>
-                          <TableHead>Описание</TableHead>
+                          <TableHead>Тип партнерства</TableHead>
                           <TableHead className="text-right">Действия</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -173,10 +176,9 @@ export default function AdminSponsorsPage() {
                         {sponsors.map((sponsor) => (
                           <TableRow key={sponsor.id}>
                             <TableCell>
-                              <Image src={sponsor.imageUrl} alt={sponsor.name} width={100} height={50} className="object-contain rounded-md bg-muted p-1" />
+                              <Image src={sponsor.imageUrl} alt={"Логотип спонсора"} width={100} height={50} className="object-contain rounded-md bg-muted p-1" />
                             </TableCell>
-                            <TableCell className="font-medium">{sponsor.name}</TableCell>
-                            <TableCell>{sponsor.description}</TableCell>
+                            <TableCell className="font-medium">{sponsor.tier}</TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="icon" onClick={() => handleEdit(sponsor)}>
                                 <Edit className="h-4 w-4" />
@@ -227,13 +229,17 @@ export default function AdminSponsorsPage() {
                     )}
 
                     <div className="space-y-2">
-                        <Label htmlFor="name">Название</Label>
-                        <Input id="name" name="name" placeholder="Название спонсора" defaultValue={editingSponsor?.name} required />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="description">Описание</Label>
-                        <Textarea id="description" name="description" placeholder="Краткое описание спонсора" defaultValue={editingSponsor?.description} required />
+                      <Label htmlFor="tier">Тип партнерства</Label>
+                      <Select name="tier" defaultValue={editingSponsor?.tier} required>
+                          <SelectTrigger>
+                              <SelectValue placeholder="Выберите тип партнерства" />
+                          </SelectTrigger>
+                          <SelectContent>
+                              {sponsorTiers.map(tier => (
+                                  <SelectItem key={tier} value={tier}>{tier}</SelectItem>
+                              ))}
+                          </SelectContent>
+                      </Select>
                     </div>
                     
                     <div className="space-y-2">
