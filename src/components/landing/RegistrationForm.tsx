@@ -9,14 +9,12 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { submitRegistration } from "@/app/registration/actions";
 import { registrationSchema, type RegistrationFormState } from "@/lib/schema";
@@ -107,40 +105,6 @@ export default function RegistrationForm() {
               <FormLabel>Контактный Email</FormLabel>
               <FormControl>
                 <Input placeholder="captain@email.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="game"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>Выберите дисциплину</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  className="flex flex-col space-y-1"
-                >
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="dota2" />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      Dota 2
-                    </FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="cs2" />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      CS2
-                    </FormLabel>
-                  </FormItem>
-                </RadioGroup>
               </FormControl>
               <FormMessage />
             </FormItem>

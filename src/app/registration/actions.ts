@@ -8,9 +8,11 @@ import { FirestorePermissionError } from "@/firebase/errors";
 
 const ADMIN_EMAIL = "admin@primeforg.gg";
 
+type RegistrationData = z.infer<typeof registrationSchema>;
+
 export async function submitRegistration(
   db: Firestore,
-  data: z.infer<typeof registrationSchema>
+  data: RegistrationData
 ): Promise<RegistrationFormState> {
   const validatedFields = registrationSchema.safeParse(data);
 
@@ -32,6 +34,7 @@ export async function submitRegistration(
   const teamsCollection = collection(db, "teams");
   const registrationData = {
       ...validatedFields.data,
+      game: 'dota2', // Always register for Dota 2
       registrationDate: new Date().toISOString(),
   };
 

@@ -110,7 +110,6 @@ export default function AdminPage() {
                           <TableHead>Название команды</TableHead>
                           <TableHead>Капитан</TableHead>
                           <TableHead>Email</TableHead>
-                          <TableHead>Дисциплина</TableHead>
                           <TableHead>Дата регистрации</TableHead>
                           <TableHead className="text-right">Действия</TableHead>
                         </TableRow>
@@ -121,7 +120,6 @@ export default function AdminPage() {
                             <TableCell>{team.teamName}</TableCell>
                             <TableCell>{team.captainName}</TableCell>
                             <TableCell>{team.email}</TableCell>
-                            <TableCell>{team.game === 'dota2' ? 'Dota 2' : 'CS2'}</TableCell>
                             <TableCell>{format(new Date(team.registrationDate), 'dd.MM.yyyy HH:mm')}</TableCell>
                             <TableCell className="text-right">
                                <AlertDialog>
