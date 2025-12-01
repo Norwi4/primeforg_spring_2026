@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Shield, Trophy, Users, Globe, Star, MapPin } from "lucide-react";
+import { Calendar, Shield, Trophy, Users, Star, MapPin, Briefcase } from "lucide-react";
 
 const tournamentDetails = [
   {
@@ -28,9 +28,9 @@ const tournamentDetails = [
     description: "Наши комментаторы и аналитики — лучшие в своем деле. Они обеспечат глубокий разбор матчей, яркие эмоции и помогут вам не упустить ни одной важной детали.",
   },
   {
-    icon: <Shield className="h-10 w-10 text-primary" />,
-    title: "Битва за превосходство",
-    description: "Станьте свидетелем невероятных стратегий, головокружительных командных боев и индивидуального мастерства. Это больше, чем игра — это битва за вечную славу.",
+    icon: <Briefcase className="h-10 w-10 text-primary" />,
+    title: "Карьерные возможности",
+    description: "На турнире будут представлены стенды ведущих компаний-работодателей. Участвуйте в активностях, выигрывайте призы и получите шанс проконсультироваться с HR-специалистами о своей карьере.",
   },
 ];
 
