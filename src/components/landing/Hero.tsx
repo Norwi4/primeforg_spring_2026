@@ -30,7 +30,7 @@ export default function Hero() {
             Spring 2026
           </p>
           <p className="mt-6 max-w-3xl mx-auto text-lg md:text-xl text-muted-foreground">
-            Величайший киберспортивный турнир по Dota 2 и CS2 приближается. Приготовьтесь к эпическим сражениям и легендарным моментам.
+            Величайший киберспортивный турнир по Dota 2 приближается. Приготовьтесь к эпическим сражениям и легендарным моментам.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild>
