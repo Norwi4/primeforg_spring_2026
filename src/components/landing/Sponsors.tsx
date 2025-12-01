@@ -53,11 +53,11 @@ export default function Sponsors() {
           {sortedSponsors && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {sortedSponsors.map((sponsor) => (
-                <Card key={sponsor.id} className="bg-background/40 border-border/60 hover:border-primary/80 transition-all duration-300 flex flex-col group text-center items-center overflow-hidden relative">
+                <Card key={sponsor.id} className="aspect-square bg-background/40 border-border/60 hover:border-primary/80 transition-all duration-300 flex flex-col group text-center items-center overflow-hidden relative">
                    <Badge variant={sponsor.tier === "Титульный партнер" || sponsor.tier === "Генеральный партнер" ? "default" : "secondary"} className="absolute top-2 left-2 z-10">
                     {sponsor.tier}
                   </Badge>
-                  <CardContent className="flex items-center justify-center p-6 h-48 w-full">
+                  <CardContent className="flex items-center justify-center p-6 w-full h-full">
                     <div className="relative h-full w-full grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300">
                       <Image
                         src={sponsor.imageUrl}
