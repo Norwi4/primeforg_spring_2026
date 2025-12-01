@@ -43,7 +43,7 @@ export default function Sponsors() {
           <div className="space-y-2">
             <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Наши партнеры</div>
             <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-5xl text-primary-foreground">
-              Спонсоры турнира
+              Партнеры турнира
             </h2>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
               Мы благодарны нашим спонсорам, которые делают этот турнир возможным.
