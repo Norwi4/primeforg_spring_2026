@@ -3,9 +3,11 @@ import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection } from "firebase/firestore";
-import { Loader2 } from "lucide-react";
+import { Loader2, Handshake } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { sponsorTiers } from "@/lib/schema";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 type Sponsor = {
   id: string;
@@ -30,7 +32,8 @@ export default function Sponsors() {
   const { data: sponsors, isLoading, error } = useCollection<Sponsor>(sponsorsQuery);
 
   const sortedSponsors = useMemoFirebase(() => {
-    return sponsors?.sort((a, b) => tierOrder[a.tier] - tierOrder[b.tier]);
+    if (!sponsors) return [];
+    return [...sponsors].sort((a, b) => tierOrder[a.tier] - tierOrder[b.tier]);
   }, [sponsors]);
 
   return (
@@ -50,7 +53,7 @@ export default function Sponsors() {
         <div className="mt-12">
           {isLoading && <div className="flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}
           {error && <p className="text-destructive text-center">Не удалось загрузить спонсоров.</p>}
-          {sortedSponsors && (
+          {sortedSponsors && sortedSponsors.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {sortedSponsors.map((sponsor) => (
                 <Card key={sponsor.id} className="aspect-square bg-background/40 border-border/60 hover:border-primary/80 transition-all duration-300 flex flex-col group text-center items-center overflow-hidden relative">
@@ -75,6 +78,14 @@ export default function Sponsors() {
             <p className="text-muted-foreground text-center p-8">Спонсоры скоро будут объявлены.</p>
           )}
         </div>
+         <div className="mt-12 flex justify-center">
+            <Button size="lg" asChild>
+              <Link href="/partner-registration">
+                <Handshake className="mr-2 h-5 w-5" />
+                Стать партнером
+              </Link>
+            </Button>
+          </div>
       </div>
     </section>
   );

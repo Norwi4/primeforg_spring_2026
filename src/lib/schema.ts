@@ -49,3 +49,22 @@ export type SponsorFormState = {
 };
 
 export type SponsorPayload = z.infer<typeof sponsorSchema>;
+
+
+export const partnerRegistrationSchema = z.object({
+  companyName: z.string().min(2, { message: "Название компании должно содержать не менее 2 символов." }),
+  contactPerson: z.string().min(2, { message: "Имя контактного лица обязательно." }),
+  email: z.string().email({ message: "Неверный формат email." }),
+  message: z.string().min(10, { message: "Сообщение должно содержать не менее 10 символов." }).optional(),
+});
+
+export type PartnerRegistrationFormState = {
+  errors?: {
+    companyName?: string[];
+    contactPerson?: string[];
+    email?: string[];
+    message?: string[];
+  };
+  message: string;
+  success: boolean;
+};
