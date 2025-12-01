@@ -11,7 +11,7 @@ export default function RegistrationPage() {
         <div className="container mx-auto grid items-center justify-center gap-8 px-4 text-center md:px-6">
           <div className="space-y-3">
             <h1 className="font-headline text-3xl font-bold tracking-tighter md:text-4xl/tight text-primary">
-              Регистрация команды на турнир
+              Регистрация команды
             </h1>
             <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
               Заполните форму ниже, чтобы заявить о своем участии в PrimeForg Spring 2026.
