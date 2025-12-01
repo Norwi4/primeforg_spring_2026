@@ -4,8 +4,8 @@ import { Calendar, Shield, Trophy, Users, Globe, Star, MapPin } from "lucide-rea
 const tournamentDetails = [
   {
     icon: <Trophy className="h-10 w-10 text-primary" />,
-    title: "Две дисциплины, один чемпион",
-    description: "Лучшие команды со всей России сойдутся в битвах по Dota 2 и CS2 за звание чемпионов, колоссальные призовые фонды и вечную славу.",
+    title: "Один турнир, один чемпион",
+    description: "Лучшие команды со всей России сойдутся в битве по Dota 2 за звание чемпионов, колоссальный призовой фонд и вечную славу.",
   },
   {
     icon: <Calendar className="h-10 w-10 text-primary" />,
@@ -20,7 +20,7 @@ const tournamentDetails = [
   {
     icon: <Users className="h-10 w-10 text-primary" />,
     title: "Открытые квалификации: Ваш шанс",
-    description: "Мечтаете о большой сцене? У каждой команды есть шанс проявить себя и пробиться в элиту через серию напряженных открытых квалификаций в обеих дисциплинах.",
+    description: "Мечтаете о большой сцене? У каждой команды есть шанс проявить себя и пробиться в элиту через серию напряженных открытых квалификаций.",
   },
   {
     icon: <Star className="h-10 w-10 text-primary" />,
@@ -45,7 +45,7 @@ export default function TournamentInfo() {
               Подробности события
             </h2>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Все, что вам нужно знать о предстоящем чемпионате по Dota 2 и CS2.
+              Все, что вам нужно знать о предстоящем чемпионате по Dota 2.
             </p>
           </div>
         </div>
