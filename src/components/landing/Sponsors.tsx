@@ -75,7 +75,7 @@ export default function Sponsors() {
             </div>
           )}
            {sponsors?.length === 0 && !isLoading && (
-            <p className="text-muted-foreground text-center p-8">Спонсоры скоро будут объявлены.</p>
+            <p className="text-muted-foreground text-center p-8">Партнеры скоро будут объявлены.</p>
           )}
         </div>
          <div className="mt-12 flex justify-center">
