@@ -20,7 +20,7 @@ const fontHeadline = Orbitron({
 
 export const metadata: Metadata = {
   title: 'PrimeForg - Spring 2026',
-  description: 'PrimeForg presents the ultimate esports tournament in Spring 2026, featuring Dota 2 and CS2. Get ready for epic battles and legendary plays.',
+  description: 'Величайший киберспортивный турнир по Dota 2 приближается. Приготовьтесь к эпическим сражениям и легендарным моментам.',
 };
 
 export default function RootLayout({
