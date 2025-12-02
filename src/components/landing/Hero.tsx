@@ -1,24 +1,20 @@
+
 import Image from "next/image";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowDown, Gamepad2, Shield } from "lucide-react";
 
 export default function Hero() {
-  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-background');
-
   return (
     <section id="home" className="relative w-full h-screen">
-      {heroImage && (
-        <Image
-          src={heroImage.imageUrl}
-          alt={heroImage.description}
-          fill
-          className="object-cover"
-          priority
-          data-ai-hint={heroImage.imageHint}
-        />
-      )}
+      <Image
+        src="/hero-background.jpg"
+        alt="Esports tournament background"
+        fill
+        className="object-cover z-[-1]"
+        priority
+        data-ai-hint="esports gaming"
+      />
       <div className="absolute inset-0 bg-black/30" />
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
       <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-primary-foreground p-4">
